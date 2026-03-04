@@ -39,8 +39,8 @@ header h1{font-size:22px;font-weight:400;letter-spacing:-.5px}
 .meta-pill{font-size:11px;color:var(--text4);font-family:monospace}
 .save-indicator{font-size:10px;font-family:monospace;color:var(--teal);opacity:0;transition:opacity .3s}
 .save-indicator.show{opacity:1}
-.theme-toggle{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 10px;font-size:11px;font-family:monospace;color:var(--text3);cursor:pointer;transition:all .15s}
-.theme-toggle:hover{color:var(--text);border-color:var(--border3)}
+.theme-toggle{background:var(--bg3);border:1px solid var(--border2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:all .2s;flex-shrink:0;line-height:1}
+.theme-toggle:hover{border-color:var(--border3);background:var(--bg2)}
 .nav-tabs{display:flex;gap:3px}
 .nav-tab{padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:11px;font-family:monospace;cursor:pointer;transition:all .15s}
 .nav-tab.active{background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text);border-color:var(--border2)}
@@ -264,7 +264,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   .header-right { gap:8px; width:100%; justify-content:space-between; }
   .nav-tabs { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
   .nav-tab { padding:6px 10px; font-size:10px; white-space:nowrap; flex-shrink:0; }
-  .theme-toggle { font-size:10px; padding:3px 8px; }
+  .theme-toggle { font-size:14px; }
   .meta-pill, .save-indicator { font-size:10px; }
 
   /* Compose: single column on mobile */
@@ -339,14 +339,14 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   <div class="header-right">
     <span class="save-indicator" id="save-indicator">💾 saved</span>
     <span class="meta-pill" id="entry-count">0 entries</span>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">☀ light mode</button>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showPage('compose',this)">✏ compose</button>
-      <button class="nav-tab" onclick="showPage('feed',this)">📋 entries</button>
-      <button class="nav-tab" onclick="showPage('calendar',this)">📅 calendar</button>
-      <button class="nav-tab" onclick="showPage('patterns',this)">📊 patterns</button>
-      <button class="nav-tab" onclick="showPage('goals',this)">🎯 goals</button>
-      <button class="nav-tab hidden" id="detail-tab" onclick="showPage('detail',this)">🔍 entry</button>
+      <button class="nav-tab active" onclick="showPage('compose',this)">✏ Compose</button>
+      <button class="nav-tab" onclick="showPage('feed',this)">📋 Entries</button>
+      <button class="nav-tab" onclick="showPage('calendar',this)">📅 Calendar</button>
+      <button class="nav-tab" onclick="showPage('patterns',this)">📊 Patterns</button>
+      <button class="nav-tab" onclick="showPage('goals',this)">🎯 Goals</button>
+      <button class="nav-tab hidden" id="detail-tab" onclick="showPage('detail',this)">🔍 Entry</button>
     </div>
   </div>
 </header>
@@ -357,8 +357,8 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
     <div id="error-bar" class="error-bar"><span id="error-text"></span><button onclick="hideError()">×</button></div>
     <div class="card">
       <div class="mode-row">
-        <button class="mode-btn active" id="mode-trading" onclick="setMode('trading')">📈 trade entry</button>
-        <button class="mode-btn" id="mode-journal" onclick="setMode('journal')">📓 journal note</button>
+        <button class="mode-btn active" id="mode-trading" onclick="setMode('trading')">📈 Trade entry</button>
+        <button class="mode-btn" id="mode-journal" onclick="setMode('journal')">📓 Journal note</button>
       </div>
       <div class="trade-fields show" id="trade-fields">
         <!-- Instrument type row -->
@@ -444,8 +444,8 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 <div class="page full" id="page-feed">
   <div class="search-row">
     <input type="text" id="search-input" placeholder="Search entries..." oninput="renderFeed()"/>
-    <select id="filter-tag" onchange="renderFeed()"><option value="all">all tags</option></select>
-    <select id="filter-mode" onchange="renderFeed()"><option value="all">all types</option><option value="trading">trades</option><option value="journal">journal</option></select>
+    <select id="filter-tag" onchange="renderFeed()"><option value="all">All tags</option></select>
+    <select id="filter-mode" onchange="renderFeed()"><option value="all">All types</option><option value="trading">Trades</option><option value="journal">Journal</option></select>
   </div>
   <div class="feed" id="main-feed"></div>
 </div>
@@ -543,6 +543,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────
 const TAG_ACCENT={work:"#2980b9",idea:"#f39c12",todo:"#8e44ad",meeting:"#27ae60",personal:"#e74c3c",trading:"#00d4aa"};
+const TAG_LABELS={work:"Work",idea:"Idea",todo:"To-Do",meeting:"Meeting",personal:"Personal",trading:"Trading"};
 const TAGS=Object.keys(TAG_ACCENT);
 const DAY=86400000,NOW=Date.now();
 const STORAGE_KEY="journal_v4",GOALS_KEY="journal_goals_v4",THEME_KEY="journal_theme";
@@ -563,11 +564,11 @@ function toggleTheme(){
   const isDark=document.documentElement.getAttribute("data-theme")==="dark";
   const next=isDark?"light":"dark";
   document.documentElement.setAttribute("data-theme",next);
-  document.getElementById("theme-toggle").textContent=next==="dark"?"☀ light mode":"🌙 dark mode";
+  document.getElementById("theme-toggle").textContent=next==="dark"?"🌙":"☀️";
   document.getElementById("theme-color-meta").setAttribute("content",next==="dark"?"#0a0a0a":"#f5f4f0");
   try{localStorage.setItem(THEME_KEY,next);}catch(e){}
 }
-(function(){try{const t=localStorage.getItem(THEME_KEY);if(t){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();
+(function(){try{const t=localStorage.getItem(THEME_KEY);if(t){document.documentElement.setAttribute("data-theme",t);document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}})();
 
 // ── Storage ────────────────────────────────────────────────────────────────
 function loadData(key,fallback){try{const s=localStorage.getItem(key);if(s)return JSON.parse(s);}catch(e){}return fallback();}
@@ -883,7 +884,7 @@ function openDetailPage(id){
   }
   if(e.image)html+=`<img class="detail-image" src="${e.image}" onclick="openLightbox('${e.image}')"/>`;
   if(e.text)html+=`<div class="detail-text ${!e.image&&!e.trade?.ticker?"no-border":""}">${esc(e.text)}</div>`;
-  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span><span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
+  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span><span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
   if(e.reminder){
     const rd=new Date(e.reminder);
     const rdStr=rd.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+" at "+rd.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
@@ -919,8 +920,8 @@ function goBackToFeed(){
 function renderMiniFeeed(){
   const el=document.getElementById("mini-feed");
   const recent=entries.slice(0,6);
-  if(!recent.length){el.innerHTML='<div style="padding:10px 14px;font-size:11px;color:var(--text4);font-family:monospace">no entries yet</div>';return;}
-  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${e.tag}</span>${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:10px;font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:10px;font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:11px;color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
+  if(!recent.length){el.innerHTML='<div style="padding:10px 14px;font-size:11px;color:var(--text4);font-family:monospace">No entries yet</div>';return;}
+  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${TAG_LABELS[e.tag]||e.tag}</span>${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:10px;font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:10px;font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:11px;color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
   const trades=entries.filter(e=>e.trade?.pnl!=null);
   if(trades.length){const wins=trades.filter(e=>e.trade.pnl>0).length;document.getElementById("win-rate-small").textContent=Math.round(wins/trades.length*100)+"% win rate";}
 }
@@ -932,7 +933,7 @@ function renderFeed(){
   const modeFilter=document.getElementById("filter-mode")?.value||"all";
   const filtered=entries.filter(e=>(tagFilter==="all"||e.tag===tagFilter)&&(modeFilter==="all"||e.mode===modeFilter)&&(e.text.toLowerCase().includes(search)||(e.trade?.ticker||"").toLowerCase().includes(search)));
   const el=document.getElementById("main-feed");
-  if(!filtered.length){el.innerHTML='<div class="empty-state">no entries found.</div>';return;}
+  if(!filtered.length){el.innerHTML='<div class="empty-state">No entries found.</div>';return;}
   el.innerHTML=filtered.map(e=>{
     const exp=expandedIds.has(e.id);
     const pnlStr=e.trade?.pnl!=null?(e.trade.pnl>=0?"+":"")+"$"+e.trade.pnl.toFixed(2):"";
@@ -940,7 +941,7 @@ function renderFeed(){
     return `<div class="entry" style="border-left:3px solid ${TAG_ACCENT[e.tag]}">
       <div class="entry-header" onclick="toggleExpand(${e.id})">
         <span style="font-size:13px">${e.mode==="trading"?"📈":"📓"}</span>
-        <span class="entry-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${e.tag}</span>
+        <span class="entry-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span>
         ${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker} ${e.trade.direction}</span>`:""}
         ${pnlStr?`<span style="font-size:10px;font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
         ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
@@ -978,9 +979,13 @@ function renderCalendar(){
     const dayPnl=dayEntries.reduce((s,e)=>s+(e.trade?.pnl||0),0);
     const hasTrades=dayEntries.some(e=>e.trade?.pnl!=null);
     const cls=hasTrades?(dayPnl>=0?"win":"loss"):"";
+    // Colored dots for non-trade journal entries
+    const journalEntries=dayEntries.filter(e=>e.mode==="journal"||!e.trade?.ticker);
+    const dots=journalEntries.length?`<div style="display:flex;gap:2px;flex-wrap:wrap;margin-top:2px;padding:0 2px">${[...new Set(journalEntries.map(e=>e.tag))].slice(0,4).map(tag=>`<div style="width:5px;height:5px;border-radius:50%;background:${TAG_ACCENT[tag]||'var(--text4)'}"></div>`).join("")}</div>`:"";
     cells+=`<div class="cal-day ${cls} ${isToday?"today":""}" onclick="selectCalDay(${d})">`+
       `<div class="cal-day-num">${d}</div>`+
-      (hasTrades?`<div class="cal-pnl" style="color:${dayPnl>=0?"var(--green)":"var(--red)"}">${dayPnl>=0?"+":""}$${Math.abs(dayPnl).toFixed(0)}</div>`:``)+"</div>";
+      (hasTrades?`<div class="cal-pnl" style="color:${dayPnl>=0?"var(--green)":"var(--red)"}">${dayPnl>=0?"+":""}$${Math.abs(dayPnl).toFixed(0)}</div>`:``)+
+      dots+"</div>";
   }
   document.getElementById("cal-grid").innerHTML=cells;
   if(selectedCalDay)selectCalDay(selectedCalDay);
@@ -1265,19 +1270,19 @@ function renderGoals(){
       ${logHtml}
     </div>`;
   });
-  cards.push(`<div class="add-goal-card" onclick="openGoalModal()">+ add goal</div>`);
+  cards.push(`<div class="add-goal-card" onclick="openGoalModal()">+ Add goal</div>`);
   grid.innerHTML=cards.join("");
 }
 
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
   // Apply saved theme label
-  try{const t=localStorage.getItem(THEME_KEY);if(t){document.getElementById("theme-toggle").textContent=t==="dark"?"☀ light mode":"🌙 dark mode";}}catch(e){}
+  try{const t=localStorage.getItem(THEME_KEY);if(t){document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}
   // Build tag buttons
   const tagBtnsEl=document.getElementById("tag-buttons");
   TAGS.forEach(t=>{
     const btn=document.createElement("button");
-    btn.className="tag-btn";btn.textContent=t;btn.dataset.tag=t;btn.onclick=()=>selectTag(t);
+    btn.className="tag-btn";btn.textContent=TAG_LABELS[t]||t;btn.dataset.tag=t;btn.onclick=()=>selectTag(t);
     tagBtnsEl.appendChild(btn);
     const o=document.createElement("option");o.value=t;o.textContent=t;
     document.getElementById("filter-tag").appendChild(o);
