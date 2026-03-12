@@ -12,6 +12,10 @@
 <meta name="theme-color" content="#0a0a0a" id="theme-color-meta"/>
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230a0a0a'/><text y='68' x='50' text-anchor='middle' font-size='52' font-family='Georgia,serif' fill='%2300d4aa'>j.</text></svg>"/>
 <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22journal.%22%2C%22short_name%22%3A%22journal.%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a0a%22%2C%22theme_color%22%3A%22%230a0a0a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg+xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'+viewBox%3D'0+0+100+100'%3E%3Crect+width%3D'100'+height%3D'100'+rx%3D'22'+fill%3D'%230a0a0a'%2F%3E%3Ctext+y%3D'68'+x%3D'50'+text-anchor%3D'middle'+font-size%3D'52'+font-family%3D'Georgia%2Cserif'+fill%3D'%2300d4aa'%3Ej.%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D"/>
+<!-- Firebase SDK (compat – exposes global `firebase` object) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg:#0a0a0a; --bg2:#111; --bg3:#1a1a1a;
@@ -41,6 +45,9 @@ header h1{font-size:22px;font-weight:400;letter-spacing:-.5px}
 .save-indicator.show{opacity:1}
 .theme-toggle{background:var(--bg3);border:1px solid var(--border2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:all .2s;flex-shrink:0;line-height:1}
 .theme-toggle:hover{border-color:var(--border3);background:var(--bg2)}
+.sync-btn{font-size:10px;font-family:monospace;color:var(--text4);background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .2s;flex-shrink:0;white-space:nowrap}
+.sync-btn:hover{border-color:var(--border3);color:var(--text3)}
+.sync-btn.connected{color:var(--teal);border-color:color-mix(in srgb,var(--teal) 30%,transparent)}
 .nav-tabs{display:flex;gap:3px}
 .nav-tab{padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:11px;font-family:monospace;cursor:pointer;transition:all .15s}
 .nav-tab.active{background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text);border-color:var(--border2)}
@@ -340,6 +347,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
     <span class="save-indicator" id="save-indicator">💾 saved</span>
     <span class="meta-pill" id="entry-count">0 entries</span>
     <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+    <button class="sync-btn" id="sync-btn" title="Sign in with Google to sync between iPhone &amp; desktop">&#9729; sync</button>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showPage('compose',this)">✏ Compose</button>
       <button class="nav-tab" onclick="showPage('feed',this)">📋 Entries</button>
@@ -465,7 +473,13 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 <div class="page full" id="page-patterns">
   <div class="patterns-grid" id="patterns-grid"></div>
   <div class="two-col">
-    <div class="mistakes-card"><div class="sec-title">RECURRING PATTERNS</div><div id="mistakes-bars"></div></div>
+    <div class="mistakes-card">
+      <div class="sec-title">RECURRING PATTERNS</div>
+      <div style="display:flex;justify-content:center;align-items:center;padding:8px 0">
+        <canvas id="radar-chart" width="320" height="320" style="max-width:100%"></canvas>
+      </div>
+      <div id="radar-legend" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px"></div>
+    </div>
     <div class="insight-card"><h3>AI INSIGHTS</h3><div id="ai-insights"></div></div>
   </div>
 </div>
@@ -559,6 +573,176 @@ const CHECKLIST=[
 const FUTURES_PV={NQ:20,ES:50,YM:5,RTY:50,CL:1000,GC:100,SI:5000,MNQ:2,MES:5,MYM:0.5,M2K:5,MCL:100,MGC:10};
 const FUTURES_TICK={NQ:0.25,ES:0.25,YM:1,RTY:0.1,CL:0.01,GC:0.1,SI:0.005,MNQ:0.25,MES:0.25,MYM:1,M2K:0.1,MCL:0.01,MGC:0.1};
 
+// ── Firebase Config ────────────────────────────────────────────────────────
+// SETUP INSTRUCTIONS (one-time, ~5 minutes):
+//  1. Go to https://console.firebase.google.com → "Add project" (name it anything)
+//  2. In the project: Build → Firestore Database → Create database → Start in test mode
+//  3. In the project: Build → Authentication → Get started → Sign-in method → Google → Enable
+//  4. Click the gear icon → Project settings → Your apps → </> (web) → Register app
+//  5. Copy the firebaseConfig values below and replace the placeholders
+//
+// FIRESTORE SECURITY RULES (paste in Firestore → Rules tab):
+//  rules_version = '2';
+//  service cloud.firestore {
+//    match /databases/{database}/documents {
+//      match /users/{userId}/{document=**} {
+//        allow read, write: if request.auth != null && request.auth.uid == userId;
+//      }
+//    }
+//  }
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCM-3zEVkZtlpy5LjXLptIMkqtaEz2dgzQ",
+  authDomain:        "journal-for-tradingg.firebaseapp.com",
+  projectId:         "journal-for-tradingg",
+  storageBucket:     "journal-for-tradingg.firebasestorage.app",
+  messagingSenderId: "413347283375",
+  appId:             "1:413347283375:web:9bd8ecc918d82f65e9af5a"
+};
+
+// ── Firebase State ─────────────────────────────────────────────────────────
+let _db=null,_auth=null,_currentUser=null;
+let _fsUnsubEntries=null,_fsUnsubGoals=null;
+
+function initFirebase(){
+  if(!FIREBASE_CONFIG.apiKey||FIREBASE_CONFIG.apiKey==="YOUR_API_KEY") return;
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    _db=firebase.firestore();
+    _auth=firebase.auth();
+    _auth.onAuthStateChanged(user=>{
+      _currentUser=user;
+      _updateSyncUI();
+      if(user) _fsSubscribe();
+      else _fsUnsubscribeAll();
+    });
+  }catch(e){console.warn("Firebase init error:",e);}
+}
+
+function _updateSyncUI(){
+  const btn=document.getElementById("sync-btn");
+  if(!btn)return;
+  if(!FIREBASE_CONFIG.apiKey||FIREBASE_CONFIG.apiKey==="YOUR_API_KEY"){btn.style.display="none";return;}
+  if(_currentUser){
+    const name=_currentUser.displayName?.split(" ")[0]||_currentUser.email?.split("@")[0]||"synced";
+    btn.textContent="☁ "+name;
+    btn.title="Synced as "+_currentUser.email+" · click to sign out";
+    btn.onclick=()=>_auth.signOut();
+    btn.classList.add("connected");
+  } else {
+    btn.textContent="☁ sync";
+    btn.title="Sign in with Google to sync between iPhone & desktop";
+    btn.onclick=()=>_auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    btn.classList.remove("connected");
+  }
+}
+
+function _fsSubscribe(){
+  if(!_db||!_currentUser)return;
+  const uid=_currentUser.uid;
+  _fsUnsubEntries=_db.collection("users/"+uid+"/entries").orderBy("ts","desc")
+    .onSnapshot(snap=>{
+      const remote=snap.docs.map(d=>d.data());
+      if(remote.length===0&&localStorage.getItem(STORAGE_KEY)){
+        _fsUploadAllEntries();return;
+      }
+      if(remote.length>0){
+        entries=remote;
+        try{localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));}catch(e){}
+        updateEntryCount();renderMiniFeeed();
+        const ap=document.querySelector(".page.active");
+        if(ap){
+          if(ap.id==="page-feed")renderFeed();
+          else if(ap.id==="page-calendar")renderCalendar();
+          else if(ap.id==="page-patterns")renderPatterns();
+        }
+      }
+    },err=>console.warn("Firestore entries listener error:",err));
+  _fsUnsubGoals=_db.collection("users/"+uid+"/goals")
+    .onSnapshot(snap=>{
+      const remote=snap.docs.map(d=>d.data());
+      if(remote.length===0&&localStorage.getItem(GOALS_KEY)){
+        _fsUploadAllGoals();return;
+      }
+      if(remote.length>0){
+        goals=remote;
+        try{localStorage.setItem(GOALS_KEY,JSON.stringify(goals));}catch(e){}
+        const ap=document.querySelector(".page.active");
+        if(ap?.id==="page-goals")renderGoals();
+      }
+    },err=>console.warn("Firestore goals listener error:",err));
+}
+
+function _fsUnsubscribeAll(){
+  if(_fsUnsubEntries){_fsUnsubEntries();_fsUnsubEntries=null;}
+  if(_fsUnsubGoals){_fsUnsubGoals();_fsUnsubGoals=null;}
+}
+
+async function _fsUploadAllEntries(){
+  if(!_db||!_currentUser||!entries.length)return;
+  const uid=_currentUser.uid;
+  // Batch in groups of 500 (Firestore limit)
+  for(let i=0;i<entries.length;i+=500){
+    const batch=_db.batch();
+    entries.slice(i,i+500).forEach(e=>batch.set(_db.doc("users/"+uid+"/entries/"+e.id),e));
+    await batch.commit().catch(err=>console.warn("Upload entries error:",err));
+  }
+}
+
+async function _fsUploadAllGoals(){
+  if(!_db||!_currentUser||!goals.length)return;
+  const uid=_currentUser.uid;
+  const batch=_db.batch();
+  goals.forEach(g=>batch.set(_db.doc("users/"+uid+"/goals/"+g.id),g));
+  await batch.commit().catch(err=>console.warn("Upload goals error:",err));
+}
+
+function fsAddEntry(entry){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/entries/"+entry.id).set(entry)
+    .catch(err=>console.warn("fsAddEntry error:",err));
+}
+function fsUpdateEntry(entry){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/entries/"+entry.id).set(entry,{merge:true})
+    .catch(err=>console.warn("fsUpdateEntry error:",err));
+}
+function fsDeleteEntry(id){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/entries/"+id).delete()
+    .catch(err=>console.warn("fsDeleteEntry error:",err));
+}
+function fsAddGoal(goal){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/goals/"+goal.id).set(goal)
+    .catch(err=>console.warn("fsAddGoal error:",err));
+}
+function fsSaveGoals(goalsList){
+  if(!_db||!_currentUser)return;
+  const uid=_currentUser.uid;
+  const batch=_db.batch();
+  goalsList.forEach(g=>batch.set(_db.doc("users/"+uid+"/goals/"+g.id),g));
+  batch.commit().catch(err=>console.warn("fsSaveGoals error:",err));
+}
+function fsDeleteGoal(id){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/goals/"+id).delete()
+    .catch(err=>console.warn("fsDeleteGoal error:",err));
+}
+
+// ── Image compression ──────────────────────────────────────────────────────
+function compressImage(dataUrl,maxW,quality,cb){
+  const img=new Image();
+  img.onload=()=>{
+    const ratio=Math.min(1,maxW/img.width);
+    const w=Math.round(img.width*ratio),h=Math.round(img.height*ratio);
+    const canvas=document.createElement("canvas");
+    canvas.width=w;canvas.height=h;
+    canvas.getContext("2d").drawImage(img,0,0,w,h);
+    cb(canvas.toDataURL("image/jpeg",quality));
+  };
+  img.src=dataUrl;
+}
+
 // ── Theme (runs immediately, before DOM ready) ─────────────────────────────
 function toggleTheme(){
   const isDark=document.documentElement.getAttribute("data-theme")==="dark";
@@ -567,6 +751,8 @@ function toggleTheme(){
   document.getElementById("theme-toggle").textContent=next==="dark"?"🌙":"☀️";
   document.getElementById("theme-color-meta").setAttribute("content",next==="dark"?"#0a0a0a":"#f5f4f0");
   try{localStorage.setItem(THEME_KEY,next);}catch(e){}
+  // Redraw radar if patterns tab is visible
+  if(document.getElementById("page-patterns").classList.contains("active")) renderPatterns();
 }
 (function(){try{const t=localStorage.getItem(THEME_KEY);if(t){document.documentElement.setAttribute("data-theme",t);document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}})();
 
@@ -576,7 +762,53 @@ function saveData(key,data){try{localStorage.setItem(key,JSON.stringify(data));f
 function flashSaved(){const el=document.getElementById("save-indicator");if(el){el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2000);}}
 
 // ── Data ───────────────────────────────────────────────────────────────────
-let entries=loadData(STORAGE_KEY,()=>[]);
+function getDemoEntries(){
+  const now=Date.now();
+  const D=86400000;
+  const e=(daysAgo,mode,tag,text,trade,analysis)=>({
+    id:now-daysAgo*D+Math.floor(Math.random()*3600000),
+    mode,tag,text,image:null,trade:trade||null,analysis:analysis||null,
+    ts:now-daysAgo*D+Math.floor(Math.random()*28800000),reminder:null
+  });
+  const t=(ticker,dir,entry,exit,shares,inst,isFut,pv)=>{
+    const diff=dir==="long"?(exit-entry):(entry-exit);
+    const pnl=isFut?diff*shares*pv:diff*shares;
+    return {ticker,direction:dir,entry,exit,shares,instrument:inst||ticker,isFutures:isFut||false,pointValue:pv||null,pnl};
+  };
+  return [
+    e(29,"trading","trading","Bought NQ at the open, felt afraid it would reverse so I cut it way too early. Went up another 80 points after I got out. Really scared myself out of a great trade.",t("NQ","long",21050,21110,1,"NQ",true,20),{topic:"fear-based selling",analysis:"Fear overrode your plan.",tips:["Size down until pullbacks don't scare you."]}),
+    e(28,"trading","trading","ES long, clean setup off VWAP. Followed my plan, waited for confirmation, executed well. Stayed calm the whole time. Really clean execution today.",t("ES","long",5780,5798,2,"ES",true,50),{topic:"good execution",analysis:"You executed to plan.",tips:["Document exactly what you did right."]}),
+    e(27,"trading","trading","Missed the NQ breakout and then chased it 50 points higher out of FOMO. Knew it was wrong as I was doing it. Terrible entry, stopped out immediately.",t("NQ","long",21340,21290,1,"NQ",true,20),{topic:"FOMO entries",analysis:"FOMO entries happen after the move.",tips:["If you missed it, miss it. Log it and move on."]}),
+    e(26,"journal","personal","Woke up at 6am, did 30 minutes of reading before the market open. Feeling focused and clear-headed.",null,{topic:"journal entry",analysis:"Good pre-market routine.",tips:["Consistency builds over time."]}),
+    e(25,"trading","trading","Lost on ES trade and immediately jumped back in to make it back. Revenge traded three more times. Each loss got bigger. Need to stop doing this.",t("ES","short",5760,5775,2,"ES",true,50),{topic:"revenge trading",analysis:"Revenge trading compounds losses.",tips:["Take a 30-minute break after every loss."]}),
+    e(24,"trading","trading","NQ short. Position was way too big — risked too much on this one. Got scared out even though the trade was working. Can't think straight when oversized.",t("NQ","short",21200,21155,2,"NQ",true,20),{topic:"position sizing",analysis:"Oversizing turns a bad trade into a bad day.",tips:["Risk a fixed % per trade."]}),
+    e(23,"trading","trading","Great day. Two clean ES trades, both followed the plan. Hit my targets and stopped. No overtrading. This is what discipline looks like.",t("ES","long",5750,5774,1,"ES",true,50),{topic:"good execution",analysis:"Clean process, clean result.",tips:["Review this trade monthly as a benchmark."]}),
+    e(22,"trading","trading","Was bored between 11am-1pm and just wanted to trade something. No real setup, just jumped into MNQ. Lost immediately. Boredom trading is killing my afternoon P&L.",t("MNQ","long",21100,21068,2,"MNQ",true,2),{topic:"overtrading / boredom",analysis:"Boredom is a major hidden cost.",tips:["If there's no setup, journal instead."]}),
+    e(21,"trading","trading","Held a losing NQ position way too long hoping it would come back. Didn't cut the loss when I should have. Averaged down twice. Finally stopped out for a big loss.",t("NQ","long",21300,21210,2,"NQ",true,20),{topic:"holding losers",analysis:"Holding losers and hoping is a pattern.",tips:["Would you enter this trade right now with no position? If no, exit."]}),
+    e(20,"journal","todo","Need to review my last 10 trades this weekend. Also set up better stop-loss alerts on my platform.",null,{topic:"journal entry",analysis:"Planning ahead is a great habit.",tips:["Block time in your calendar for trade review."]}),
+    e(19,"trading","trading","Sold my ES position as soon as it hit breakeven — was up 12 points before that and could have held to my target of +20. Took profit too early again.",t("ES","long",5740,5744,2,"ES",true,50),{topic:"early exits / cutting winners",analysis:"You cut your winner short.",tips:["Write your target before entering."]}),
+    e(18,"trading","trading","Saw NQ moving fast and jumped in without a setup. Classic FOMO. Didn't want to miss the move. Got in at the top and stopped out.",t("NQ","long",21450,21408,1,"NQ",true,20),{topic:"FOMO entries",analysis:"FOMO entries rarely work.",tips:["Keep a missed trades log."]}),
+    e(17,"trading","trading","Clean MES trade. Waited for the level, got a clear signal, entered small, hit my target. No drama. Feeling good about the process.",t("MES","long",5745,5758,4,"MES",true,5),{topic:"good execution",analysis:"Good process.",tips:["This is repeatable. Log it carefully."]}),
+    e(16,"trading","trading","Was really frustrated after a morning loss and felt emotional going into the afternoon. Traded angry — made impulsive decisions. Need better emotional control.",t("NQ","short",21180,21220,1,"NQ",true,20),{topic:"fear-based selling",analysis:"Emotional state affects decision quality.",tips:["Rate your emotional state before each trade 1-10."]}),
+    e(15,"journal","work","Read a chapter of 'Trading in the Zone'. The section on consistency really resonated. Need to treat every trade as just one in a series of thousands.",null,{topic:"journal entry",analysis:"Mental edge work matters.",tips:["Apply one concept per week."]}),
+    e(14,"trading","trading","Was scared the NQ would reverse so I got out 20 points too early. It ran another 60 after I exited. Fear is really holding back my P&L.",t("NQ","long",21020,21048,1,"NQ",true,20),{topic:"fear-based selling",analysis:"Pattern: fear exit on a winning trade.",tips:["Set a target and only exit if invalidated."]}),
+    e(13,"trading","trading","Revenge traded after losing in the morning. Wanted to make it back before the close. Took a stupid trade, no setup, just wanted to recoup my losses.",t("ES","long",5730,5718,1,"ES",true,50),{topic:"revenge trading",analysis:"Revenge trades always have poor setups.",tips:["Each trade is independent. PnL resets daily."]}),
+    e(12,"trading","trading","Position sizing was too big again. Risked too much on one NQ trade and couldn't manage it emotionally. Even though it was a winner I was stressed the whole time.",t("NQ","long",21060,21100,1,"NQ",true,20),{topic:"position sizing",analysis:"Oversizing causes emotional interference.",tips:["Reduce size until you feel nothing watching the trade."]}),
+    e(11,"journal","personal","Did a 20 minute walk before the trading session. Feel calm and centered. Going to focus on one trade today, one good trade.",null,{topic:"journal entry",analysis:"Pre-session routine is valuable.",tips:["Protect your mental state as a trading resource."]}),
+    e(10,"trading","trading","Sold too early again. Got out of ES at +8 points, target was +18. It hit my target 10 minutes later. I could have held — the setup was intact.",t("ES","long",5755,5763,2,"ES",true,50),{topic:"early exits / cutting winners",analysis:"You exited with the setup still valid.",tips:["Only exit early if your reason for the trade is gone."]}),
+    e(9,"trading","trading","Good day. NQ short worked perfectly. Waited for the breakdown, shorted the retest, held to target. No panic, no early exit. Best trade of the month.",t("NQ","short",21280,21200,1,"NQ",true,20),{topic:"good execution",analysis:"Perfect process.",tips:["This is your benchmark. Replicate the mindset."]}),
+    e(8,"trading","trading","Chased NQ after it broke out. FOMO kicked in hard — I just didn't want to miss the move. Entered 40 points above a reasonable level. Stopped out fast.",t("NQ","long",21500,21462,1,"NQ",true,20),{topic:"FOMO entries",analysis:"The move was already over when you entered.",tips:["If you're chasing, you're already late."]}),
+    e(7,"journal","idea","What if I only trade the first hour and last hour of the session? Most of my losses come from the slow midday chop. Worth testing.",null,{topic:"journal entry",analysis:"Good observation.",tips:["Track this hypothesis in your data."]}),
+    e(6,"trading","trading","Was really emotional today — frustrated from yesterday. Traded angry and impulsive. Every decision felt emotional. Took three bad trades in a row.",t("ES","short",5748,5762,2,"ES",true,50),{topic:"revenge trading",analysis:"Emotional carryover from the day before.",tips:["Journal after losses to close them emotionally before the next day."]}),
+    e(5,"trading","trading","Didn't cut my loss when I should have. Held the NQ position hoping it would come back. Averaged down. It didn't come back.",t("NQ","long",21350,21280,2,"NQ",true,20),{topic:"holding losers",analysis:"Hope is not a strategy.",tips:["Pre-define your max loss before entry."]}),
+    e(4,"trading","trading","Smooth ES trade. VWAP reclaim, clear entry, small size, clean exit at target. Felt in complete control. This is the standard.",t("ES","long",5762,5779,1,"ES",true,50),{topic:"good execution",analysis:"In-control execution.",tips:["Note your mental state during this trade."]}),
+    e(3,"trading","trading","Bored during lunch, just wanted to trade something. No setup, just entered MNQ for the sake of it. Boredom trading cost me again.",t("MNQ","short",21150,21178,1,"MNQ",true,2),{topic:"overtrading / boredom",analysis:"Boredom trading is voluntary loss.",tips:["Close the platform during lunch if you tend to boredom trade."]}),
+    e(2,"trading","trading","Got scared out of a perfectly good NQ long. It had a small pullback and panic sold. Went right back up after. Afraid every time there's a dip.",t("NQ","long",21080,21065,1,"NQ",true,20),{topic:"fear-based selling",analysis:"You're treating normal price action as a threat.",tips:["Define what would actually invalidate your trade before entering."]}),
+    e(1,"trading","trading","ES short, clean breakdown setup. Held to target, no fear, no FOMO. Risk was defined. Another good execution day — feeling like the work is paying off.",t("ES","short",5770,5751,2,"ES",true,50),{topic:"good execution",analysis:"Consistent good execution.",tips:["You're building the right habits."]}),
+    e(0,"journal","personal","Reflecting on the month. Fear is clearly my biggest issue — need to work on position sizing so the dips don't scare me. Going to cut size by 50% next week.",null,{topic:"journal entry",analysis:"Self-awareness is the first step.",tips:["Turn this insight into a concrete rule."]})
+  ].sort((a,b)=>b.ts-a.ts);
+}
+let entries=loadData(STORAGE_KEY,getDemoEntries);
 let goals=loadData(GOALS_KEY,()=>[]);
 
 // ── UI State ───────────────────────────────────────────────────────────────
@@ -686,7 +918,7 @@ function calcPnl(){
 // ── Image ──────────────────────────────────────────────────────────────────
 function triggerImgUpload(){if(!currentImage)document.getElementById("img-input").click();}
 function handleImgDrop(e){e.preventDefault();document.getElementById("img-zone").classList.remove("drag");const f=e.dataTransfer.files[0];if(f&&f.type.startsWith("image/"))handleImgFile(f);}
-function handleImgFile(file){if(!file)return;const r=new FileReader();r.onload=e=>{currentImage={dataUrl:e.target.result,name:file.name};renderImgZone();updateSaveBtn();};r.readAsDataURL(file);}
+function handleImgFile(file){if(!file)return;const r=new FileReader();r.onload=ev=>{compressImage(ev.target.result,1200,0.75,compressed=>{currentImage={dataUrl:compressed,name:file.name};renderImgZone();updateSaveBtn();});};r.readAsDataURL(file);}
 function renderImgZone(){
   const z=document.getElementById("img-zone");
   if(currentImage){z.className="img-zone has-img";z.innerHTML=`<img src="${currentImage.dataUrl}" alt="attached"/><div class="img-actions"><span class="img-label">&#128206; ${currentImage.name}</span><button class="remove-img" onclick="event.stopPropagation();removeImage()">remove x</button></div>`;z.onclick=null;}
@@ -784,7 +1016,7 @@ function doSave(){
   setTimeout(()=>{
     const analysis=analyzeEntry(text,currentImage,tradeData);
     const entry={id:Date.now(),mode:currentMode,tag:selectedTag,text:text||"",image:currentImage?currentImage.dataUrl:null,trade:tradeData,analysis,ts:Date.now(),reminder:reminderDt||null};
-    entries.unshift(entry);saveData(STORAGE_KEY,entries);
+    entries.unshift(entry);saveData(STORAGE_KEY,entries);fsAddEntry(entry);
     // Check new entry against custom goals
     checkNewEntryAgainstGoals(entry);
     document.getElementById("note-input").value="";finalTranscript="";currentImage=null;renderImgZone();
@@ -867,6 +1099,7 @@ function confirmInlineReminder(id){
   if(!e)return;
   e.reminder=dt;
   saveData(STORAGE_KEY,entries);
+  fsUpdateEntry(e);
   openDetailPage(id);
 }
 
@@ -960,7 +1193,7 @@ function renderFeed(){
   }).join("");
 }
 function toggleExpand(id){expandedIds.has(id)?expandedIds.delete(id):expandedIds.add(id);renderFeed();}
-function deleteEntry(id){entries=entries.filter(e=>e.id!==id);saveData(STORAGE_KEY,entries);updateEntryCount();renderFeed();renderMiniFeeed();}
+function deleteEntry(id){entries=entries.filter(e=>e.id!==id);saveData(STORAGE_KEY,entries);fsDeleteEntry(id);updateEntryCount();renderFeed();renderMiniFeeed();}
 function updateEntryCount(){document.getElementById("entry-count").textContent=`${entries.length} entr${entries.length!==1?"ies":"y"}`;}
 
 // ── Calendar ───────────────────────────────────────────────────────────────
@@ -1019,11 +1252,103 @@ function renderPatterns(){
     {label:"AVG LOSS",val:losses.length?"$"+avgLoss.toFixed(2):"—",sub:"per losing trade",cls:"danger"},
     {label:"EXPECTANCY",val:trades.length?(expectancy>=0?"+":"")+"$"+expectancy.toFixed(2):"—",sub:"avg P&L per trade",cls:expectancy>=0?"good":"danger"},
   ].map(({label,val,sub,cls})=>`<div class="pattern-card ${cls}"><h3>${label}</h3><div class="big-num">${val}</div><div class="sub">${sub}</div></div>`).join("");
-  const mt=[{label:"Fear-based selling",keys:["scared","afraid","fear","panic"]},{label:"Cutting winners early",keys:["sold too early","took profit too early","could have held"]},{label:"FOMO entries",keys:["fomo","chased","jumped in"]},{label:"Revenge trading",keys:["revenge","make it back","recoup"]},{label:"Holding losers",keys:["held.*loss","didn't cut","averaged down"]},{label:"Oversizing",keys:["too big","oversize","risked too much"]},{label:"Boredom trading",keys:["boredom","bored","just wanted to trade"]},{label:"Emotional trading",keys:["emotional","frustrated","angry","impatient"]}];
-  const counts=mt.map(m=>({label:m.label,count:entries.filter(e=>m.keys.some(k=>new RegExp(k).test((e.text||"").toLowerCase()))).length})).sort((a,b)=>b.count-a.count);
+  const mt=[{label:"Fear",keys:["scared","afraid","fear","panic"]},{label:"Cut winners",keys:["sold too early","took profit too early","could have held"]},{label:"FOMO",keys:["fomo","chased","jumped in"]},{label:"Revenge",keys:["revenge","make it back","recoup"]},{label:"Hold losers",keys:["held.*loss","didn't cut","averaged down"]},{label:"Oversize",keys:["too big","oversize","risked too much"]},{label:"Boredom",keys:["boredom","bored","just wanted to trade"]},{label:"Emotional",keys:["emotional","frustrated","angry","impatient"]}];
+  const counts=mt.map(m=>({label:m.label,count:entries.filter(e=>m.keys.some(k=>new RegExp(k).test((e.text||"").toLowerCase()))).length}));
   const maxC=Math.max(...counts.map(c=>c.count),1);
-  document.getElementById("mistakes-bars").innerHTML=counts.map(c=>`<div class="mistake-row"><div class="mistake-label">${c.label}</div><div class="mistake-bar-bg"><div class="mistake-bar" style="width:${Math.round(c.count/maxC*100)}%"></div></div><div class="mistake-count">${c.count}</div></div>`).join("");
-  const topM=counts[0];const goodT=entries.filter(e=>e.analysis?.topic?.includes("good execution")).length;
+
+  // ── Radar chart ────────────────────────────────────────────────────────
+  const canvas=document.getElementById("radar-chart");
+  if(!canvas)return;
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width,H=canvas.height;
+  const cx=W/2,cy=H/2,R=Math.min(W,H)/2-40;
+  const n=counts.length;
+  const isDark=document.documentElement.getAttribute("data-theme")!=="light";
+  const gridCol=isDark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.08)";
+  const labelCol=isDark?"#666":"#999";
+  const fillCol=isDark?"rgba(0,212,170,0.18)":"rgba(0,180,140,0.15)";
+  const strokeCol=isDark?"#00d4aa":"#00b48c";
+  const dotCol=isDark?"#00d4aa":"#009977";
+  const warnFill=isDark?"rgba(231,76,60,0.15)":"rgba(231,76,60,0.10)";
+  const warnStroke=isDark?"#e74c3c":"#c0392b";
+
+  ctx.clearRect(0,0,W,H);
+
+  const angle=i=>(-Math.PI/2)+(2*Math.PI/n)*i;
+  const pt=(i,r)=>({x:cx+r*Math.cos(angle(i)),y:cy+r*Math.sin(angle(i))});
+
+  // Draw grid rings (5 levels)
+  for(let lvl=1;lvl<=5;lvl++){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const p=pt(i,R*lvl/5);
+      i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=gridCol;ctx.lineWidth=1;ctx.stroke();
+  }
+
+  // Draw spokes
+  for(let i=0;i<n;i++){
+    const p=pt(i,R);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle=gridCol;ctx.lineWidth=1;ctx.stroke();
+  }
+
+  // Determine if any count is dominant (≥ 3x average of others)
+  const avg=counts.reduce((s,c)=>s+c.count,0)/n;
+  const hasWarning=counts.some(c=>c.count>2&&c.count>avg*2);
+
+  // Draw data polygon
+  const vals=counts.map(c=>c.count/maxC);
+  ctx.beginPath();
+  vals.forEach((v,i)=>{
+    const p=pt(i,R*Math.max(v,0.04));
+    i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+  });
+  ctx.closePath();
+  ctx.fillStyle=hasWarning?warnFill:fillCol;ctx.fill();
+  ctx.strokeStyle=hasWarning?warnStroke:strokeCol;ctx.lineWidth=2;ctx.stroke();
+
+  // Draw dots at each vertex
+  vals.forEach((v,i)=>{
+    const p=pt(i,R*Math.max(v,0.04));
+    ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);
+    ctx.fillStyle=hasWarning&&counts[i].count===Math.max(...counts.map(c=>c.count))?warnStroke:dotCol;
+    ctx.fill();
+  });
+
+  // Draw labels
+  ctx.font="11px monospace";ctx.fillStyle=labelCol;ctx.textAlign="center";ctx.textBaseline="middle";
+  counts.forEach((c,i)=>{
+    const p=pt(i,R+24);
+    // Bold + accent color for dominant category
+    const isDominant=c.count===Math.max(...counts.map(x=>x.count))&&c.count>0;
+    ctx.font=isDominant?"bold 11px monospace":"11px monospace";
+    ctx.fillStyle=isDominant?(hasWarning?warnStroke:strokeCol):labelCol;
+    ctx.fillText(c.label,p.x,p.y);
+    if(c.count>0){
+      ctx.font="10px monospace";
+      ctx.fillStyle=isDominant?(hasWarning?warnStroke:strokeCol):labelCol;
+      ctx.fillText(`(${c.count})`,p.x,p.y+13);
+    }
+  });
+
+  // Center score
+  const total=counts.reduce((s,c)=>s+c.count,0);
+  if(total===0){
+    ctx.font="12px monospace";ctx.fillStyle=labelCol;ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("No patterns yet",cx,cy);
+  }
+
+  // Legend
+  document.getElementById("radar-legend").innerHTML=counts.map(c=>`
+    <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:monospace;color:${c.count>0?(hasWarning&&c.count===Math.max(...counts.map(x=>x.count))?warnStroke:strokeCol):labelCol}">
+      <div style="width:7px;height:7px;border-radius:50%;background:${c.count>0?(hasWarning&&c.count===Math.max(...counts.map(x=>x.count))?warnStroke:strokeCol):"var(--border2)"}"></div>
+      ${c.label}${c.count>0?` · ${c.count}`:""}
+    </div>`).join("");
+  const sortedCounts=[...counts].sort((a,b)=>b.count-a.count);
+  const topM=sortedCounts[0];const goodT=entries.filter(e=>e.analysis?.topic?.includes("good execution")).length;
   const fearC=entries.filter(e=>/(scared|afraid|fear|panic)/.test((e.text||"").toLowerCase())).length;
   const lateE=entries.filter(e=>e.ts>NOW-10*DAY);const lateG=lateE.filter(e=>e.analysis?.topic?.includes("good execution")).length;
   const earlyG=entries.filter(e=>e.ts<NOW-15*DAY&&e.analysis?.topic?.includes("good execution")).length;
@@ -1074,6 +1399,7 @@ function addGoal(){
   // Scan existing entries for progress
   scanEntriesForGoal(goals[goals.length-1]);
   saveData(GOALS_KEY,goals);
+  fsSaveGoals(goals);
   renderGoals();
 }
 
@@ -1239,10 +1565,10 @@ function checkNewEntryAgainstGoals(entry){
     recalcGoalCurrent(goal);
     updated=true;
   }
-  if(updated){saveData(GOALS_KEY,goals);renderGoals();}
+  if(updated){saveData(GOALS_KEY,goals);fsSaveGoals(goals);renderGoals();}
 }
 
-function deleteGoal(id){goals=goals.filter(g=>g.id!==id);saveData(GOALS_KEY,goals);renderGoals();}
+function deleteGoal(id){goals=goals.filter(g=>g.id!==id);saveData(GOALS_KEY,goals);fsDeleteGoal(id);renderGoals();}
 
 function renderGoals(){
   const grid=document.getElementById("goals-grid");
@@ -1276,6 +1602,7 @@ function renderGoals(){
 
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
+  initFirebase();
   // Apply saved theme label
   try{const t=localStorage.getItem(THEME_KEY);if(t){document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}
   // Build tag buttons
