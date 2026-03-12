@@ -808,7 +808,7 @@ function getDemoEntries(){
     e(0,"journal","personal","Reflecting on the month. Fear is clearly my biggest issue — need to work on position sizing so the dips don't scare me. Going to cut size by 50% next week.",null,{topic:"journal entry",analysis:"Self-awareness is the first step.",tips:["Turn this insight into a concrete rule."]})
   ].sort((a,b)=>b.ts-a.ts);
 }
-let entries=loadData(STORAGE_KEY,getDemoEntries);
+let entries=loadData(STORAGE_KEY,()=>[]);
 let goals=loadData(GOALS_KEY,()=>[]);
 
 // ── UI State ───────────────────────────────────────────────────────────────
