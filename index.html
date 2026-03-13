@@ -604,6 +604,80 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   </div>
 </div>
 
+<!-- EDIT ENTRY -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal" style="width:500px;max-width:93vw;max-height:88vh;overflow-y:auto">
+    <h2>Edit Entry</h2>
+    <div class="modal-field">
+      <label>TAG</label>
+      <div id="edit-tag-row" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px"></div>
+    </div>
+    <div id="edit-trade-section">
+      <div class="modal-field">
+        <label>INSTRUMENT</label>
+        <select id="edit-instrument" onchange="onEditInstrumentChange()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:7px 9px;color:var(--text);font-size:12px;font-family:monospace;outline:none">
+          <optgroup label="Equities"><option value="equity">Stocks / ETFs</option></optgroup>
+          <optgroup label="Futures — Full">
+            <option value="NQ">NQ (Nasdaq, $20/pt)</option><option value="ES">ES (S&amp;P 500, $50/pt)</option>
+            <option value="YM">YM (Dow, $5/pt)</option><option value="RTY">RTY (Russell, $50/pt)</option>
+            <option value="CL">CL (Crude Oil, $1000/pt)</option><option value="GC">GC (Gold, $100/pt)</option>
+            <option value="SI">SI (Silver, $5000/pt)</option>
+          </optgroup>
+          <optgroup label="Futures — Micro">
+            <option value="MNQ">MNQ (Micro NQ, $2/pt)</option><option value="MES">MES (Micro ES, $5/pt)</option>
+            <option value="MYM">MYM (Micro Dow, $0.50/pt)</option><option value="M2K">M2K (Micro Russell, $5/pt)</option>
+            <option value="MCL">MCL (Micro Crude, $100/pt)</option><option value="MGC">MGC (Micro Gold, $10/pt)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:100px">
+          <label style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">DIRECTION</label>
+          <select id="edit-direction" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:7px 9px;color:var(--text);font-size:12px;font-family:monospace;outline:none"><option value="long">Long</option><option value="short">Short</option></select>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">ACCOUNT</label>
+          <div style="display:flex;gap:5px;margin-top:2px">
+            <button class="acct-btn active-live" id="edit-acct-live" onclick="setEditAccount('live')">Live</button>
+            <button class="acct-btn" id="edit-acct-funded" onclick="setEditAccount('funded')">Funded</button>
+            <button class="acct-btn" id="edit-acct-eval" onclick="setEditAccount('eval')">Eval</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:70px">
+          <label style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">TICKER</label>
+          <input id="edit-ticker" type="text" placeholder="NQ" oninput="calcEditPnl()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 7px;color:var(--text);font-size:12px;font-family:monospace;outline:none"/>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <label style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">ENTRY</label>
+          <input id="edit-entry" type="number" step="0.25" oninput="calcEditPnl()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 7px;color:var(--text);font-size:12px;font-family:monospace;outline:none"/>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <label style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">EXIT</label>
+          <input id="edit-exit" type="number" step="0.25" oninput="calcEditPnl()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 7px;color:var(--text);font-size:12px;font-family:monospace;outline:none"/>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <label id="edit-qty-label" style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">CONTRACTS</label>
+          <input id="edit-shares" type="number" oninput="calcEditPnl()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 7px;color:var(--text);font-size:12px;font-family:monospace;outline:none"/>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <label style="font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:4px;letter-spacing:.5px">P&amp;L</label>
+          <div id="edit-pnl-display" class="pnl-display">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>NOTE</label>
+      <textarea id="edit-text" rows="5" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;color:var(--text);font-size:13px;font-family:Georgia,serif;resize:vertical;outline:none;line-height:1.7;margin-top:4px"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="saveEditEntry()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- WEEKLY REVIEW -->
 <div class="wr-overlay" id="wr-overlay">
   <div class="wr-modal">
@@ -1308,7 +1382,7 @@ function openDetailPage(id){
   }
   if(e.image)html+=`<img class="detail-image" src="${e.image}" onclick="openLightbox('${e.image}')"/>`;
   if(e.text)html+=`<div class="detail-text ${!e.image&&!e.trade?.ticker?"no-border":""}">${esc(e.text)}</div>`;
-  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}<span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
+  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}<span class="detail-date">${fmtDate(e.ts)}</span><div style="display:flex;gap:6px;margin-left:auto"><button onclick="openEditModal(${e.id})" style="background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">edit</button><button onclick="deleteEntry(${e.id});goBackToFeed()" style="background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div></div>`;
   if(e.reminder){
     const rd=new Date(e.reminder);
     const rdStr=rd.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+" at "+rd.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
@@ -1543,10 +1617,11 @@ function renderPatterns(){
   });
 
   // Draw labels
-  ctx.font="11px monospace";ctx.fillStyle=labelCol;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.textBaseline="middle";
   counts.forEach((c,i)=>{
     const p=pt(i,R+24);
-    // Bold + accent color for dominant category
+    // Align based on which side of the chart the label falls on to prevent clipping
+    ctx.textAlign=p.x<cx-10?"right":p.x>cx+10?"left":"center";
     const isDominant=c.count===Math.max(...counts.map(x=>x.count))&&c.count>0;
     ctx.font=isDominant?"bold 11px monospace":"11px monospace";
     ctx.fillStyle=isDominant?(hasWarning?warnStroke:strokeCol):labelCol;
@@ -1941,6 +2016,112 @@ function renderGoals(){
   });
   cards.push(`<div class="add-goal-card" onclick="openGoalModal()">+ Add goal</div>`);
   grid.innerHTML=cards.join("");
+}
+
+// ── Edit Entry ─────────────────────────────────────────────────────────────
+let _editingId=null,_editAcct="live",_editTag="personal";
+
+function openEditModal(id){
+  const e=entries.find(en=>en.id===id);if(!e)return;
+  _editingId=id;_editTag=e.tag;_editAcct=e.trade?.accountType||"live";
+
+  // Tag row
+  document.getElementById("edit-tag-row").innerHTML=TAGS.map(t=>`<button onclick="setEditTag('${t}')" id="edit-tag-${t}" style="padding:2px 9px;border-radius:20px;border:1px solid ${t===_editTag?TAG_ACCENT[t]:"var(--border)"};background:${t===_editTag?TAG_ACCENT[t]+"22":"transparent"};color:${t===_editTag?TAG_ACCENT[t]:"var(--text4)"};font-size:10px;font-family:monospace;cursor:pointer">${TAG_LABELS[t]}</button>`).join("");
+
+  // Show/hide trade section
+  const isTrade=e.mode==="trading";
+  document.getElementById("edit-trade-section").style.display=isTrade?"block":"none";
+
+  if(isTrade&&e.trade){
+    document.getElementById("edit-instrument").value=e.trade.instrument||"equity";
+    document.getElementById("edit-direction").value=e.trade.direction||"long";
+    document.getElementById("edit-ticker").value=e.trade.ticker||"";
+    document.getElementById("edit-entry").value=e.trade.entry||"";
+    document.getElementById("edit-exit").value=e.trade.exit||"";
+    document.getElementById("edit-shares").value=e.trade.shares||"";
+    onEditInstrumentChange();
+    setEditAccount(_editAcct);
+    calcEditPnl();
+  }
+
+  document.getElementById("edit-text").value=e.text||"";
+  document.getElementById("edit-modal").classList.add("show");
+}
+
+function closeEditModal(){document.getElementById("edit-modal").classList.remove("show");_editingId=null;}
+
+function setEditTag(tag){
+  _editTag=tag;
+  TAGS.forEach(t=>{
+    const btn=document.getElementById("edit-tag-"+t);
+    if(btn){btn.style.borderColor=t===tag?TAG_ACCENT[t]:"var(--border)";btn.style.background=t===tag?TAG_ACCENT[t]+"22":"transparent";btn.style.color=t===tag?TAG_ACCENT[t]:"var(--text4)";}
+  });
+}
+
+function setEditAccount(type){
+  _editAcct=type;
+  const cls={live:"active-live",funded:"active-funded",eval:"active-eval"};
+  ["live","funded","eval"].forEach(t=>{const btn=document.getElementById("edit-acct-"+t);if(btn)btn.className="acct-btn"+(t===type?" "+cls[t]:"");});
+}
+
+function onEditInstrumentChange(){
+  const inst=document.getElementById("edit-instrument").value;
+  const isFut=!!FUTURES_PV[inst];
+  document.getElementById("edit-qty-label").textContent=isFut?"CONTRACTS":"SHARES";
+  calcEditPnl();
+}
+
+function calcEditPnl(){
+  const inst=document.getElementById("edit-instrument").value;
+  const pv=FUTURES_PV[inst]||null;
+  const dir=document.getElementById("edit-direction").value;
+  const en=parseFloat(document.getElementById("edit-entry").value);
+  const ex=parseFloat(document.getElementById("edit-exit").value);
+  const qty=parseFloat(document.getElementById("edit-shares").value);
+  const el=document.getElementById("edit-pnl-display");
+  if(!el)return;
+  if(en&&ex&&qty){
+    const diff=dir==="long"?(ex-en):(en-ex);
+    const pnl=pv?diff*qty*pv:diff*qty;
+    el.textContent=(pnl>=0?"+":"")+"$"+pnl.toFixed(2);
+    el.className="pnl-display"+(pnl>=0?" pos":" neg");
+  } else {
+    el.textContent="—";el.className="pnl-display";
+  }
+}
+
+function saveEditEntry(){
+  const e=entries.find(en=>en.id===_editingId);if(!e)return;
+  const newText=document.getElementById("edit-text").value.trim();
+  e.tag=_editTag;
+  e.text=newText;
+
+  if(e.mode==="trading"){
+    const inst=document.getElementById("edit-instrument").value;
+    const pv=FUTURES_PV[inst]||null;
+    const isFut=!!FUTURES_PV[inst];
+    const dir=document.getElementById("edit-direction").value;
+    const en=parseFloat(document.getElementById("edit-entry").value)||null;
+    const ex=parseFloat(document.getElementById("edit-exit").value)||null;
+    const qty=parseFloat(document.getElementById("edit-shares").value)||null;
+    let pnl=null;
+    if(en&&ex&&qty){const diff=dir==="long"?(ex-en):(en-ex);pnl=pv?diff*qty*pv:diff*qty;}
+    e.trade={ticker:document.getElementById("edit-ticker").value.toUpperCase()||null,direction:dir,entry:en,exit:ex,shares:qty,instrument:inst,isFutures:isFut,pointValue:pv,pnl,accountType:_editAcct};
+  }
+
+  // Re-analyze with updated text and trade
+  e.analysis=analyzeEntry(newText,e.image?{dataUrl:e.image}:null,e.trade);
+
+  saveData(STORAGE_KEY,entries);
+  fsUpdateEntry(e);
+
+  // Rescan goals since P&L may have changed
+  if(goals.length){goals.forEach(g=>scanEntriesForGoal(g));saveData(GOALS_KEY,goals);fsSaveGoals(goals);}
+
+  closeEditModal();
+  openDetailPage(_editingId);
+  renderMiniFeeed();
+  if(document.getElementById("page-feed").classList.contains("active"))renderFeed();
 }
 
 // ── Weekly Review ──────────────────────────────────────────────────────────
