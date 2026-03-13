@@ -1285,7 +1285,7 @@ function renderPatterns(){
     {label:"AVG WIN",val:wins.length?"+$"+avgWin.toFixed(2):"—",sub:"per winning trade",cls:"good"},
     {label:"AVG LOSS",val:losses.length?"$"+avgLoss.toFixed(2):"—",sub:"per losing trade",cls:"danger"},
     {label:"EXPECTANCY",val:trades.length?(expectancy>=0?"+":"")+"$"+expectancy.toFixed(2):"—",sub:"avg P&L per trade",cls:expectancy>=0?"good":"danger"},
-    {label:"AVG TRADE GRADE",val:avgGradeStr,sub:gradedTrades.length?`across ${gradedTrades.length} graded trade${gradedTrades.length!==1?"s":""}`:trades.length?"no grades yet — log trades to grade","",cls:avgGradeCls},
+    {label:"AVG TRADE GRADE",val:avgGradeStr,sub:gradedTrades.length?`across ${gradedTrades.length} graded trade${gradedTrades.length!==1?"s":""}`:trades.length?"no grades yet":"",cls:avgGradeCls},
   ].map(({label,val,sub,cls})=>`<div class="pattern-card ${cls}"><h3>${label}</h3><div class="big-num">${val}</div><div class="sub">${sub}</div></div>`).join("");
   const mt=[{label:"Fear",keys:["scared","afraid","fear","panic"]},{label:"Cut winners",keys:["sold too early","took profit too early","could have held"]},{label:"FOMO",keys:["fomo","chased","jumped in"]},{label:"Revenge",keys:["revenge","make it back","recoup"]},{label:"Hold losers",keys:["held.*loss","didn't cut","averaged down"]},{label:"Oversize",keys:["too big","oversize","risked too much"]},{label:"Boredom",keys:["boredom","bored","just wanted to trade"]},{label:"Emotional",keys:["emotional","frustrated","angry","impatient"]}];
   const counts=mt.map(m=>({label:m.label,count:filtered.filter(e=>m.keys.some(k=>new RegExp(k).test((e.text||"").toLowerCase()))).length}));
