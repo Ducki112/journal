@@ -755,6 +755,35 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
       </div>
     </div>
 
+    <!-- Font Color -->
+    <div class="settings-section">
+      <div class="settings-section-title">FONT COLOR</div>
+      <div class="settings-section-desc">Customize the color of your journal text. Secondary and muted tones are derived automatically.</div>
+      <div class="cp-wrap">
+        <div class="cp-left">
+          <div class="cp-sq-wrap" id="cp-fc-sq-wrap">
+            <canvas id="cp-fc-sq" width="220" height="180"></canvas>
+            <div class="cp-cursor" id="cp-fc-cursor"></div>
+          </div>
+          <div class="cp-hue-wrap" id="cp-fc-hue-wrap">
+            <canvas id="cp-fc-hue" width="220" height="14"></canvas>
+            <div class="cp-hue-cursor" id="cp-fc-hue-cursor"></div>
+          </div>
+          <div class="cp-hex-row">
+            <div class="cp-preview" id="cp-fc-preview"></div>
+            <input class="cp-hex-input" id="cp-fc-hex" type="text" maxlength="7" placeholder="#f0ede6" oninput="onCpHexInput('fc')"/>
+          </div>
+          <div class="cp-swatches" id="cp-fc-swatches"></div>
+        </div>
+        <div class="cp-right">
+          <div style="font-size:10px;font-family:monospace;color:var(--text4);margin-bottom:8px;letter-spacing:.5px">PRESETS</div>
+          <div id="cp-fc-presets"></div>
+          <button class="cp-apply-btn" onclick="applyFontColor()">Apply</button>
+          <button class="cp-reset-btn" onclick="resetFontColor()">Reset to Default</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -2632,6 +2661,7 @@ const SETTINGS_KEY="journal_settings_v1";
 const CP_BG_SWATCHES=["#0a0a0a","#0a0d1a","#0f1117","#0a1510","#120a1a","#1a110a","#1a1a2e","#101820","#0d0d0d","#0f0f12"];
 const CP_BG_LIGHT_SWATCHES=["#f5f4f0","#faf8f4","#f0f4fa","#fdf5f0","#f4f0fa","#f0faf4","#ffffff","#f8f6f0","#eef2f7","#faf4ee"];
 const CP_AC_SWATCHES=["#00d4aa","#00bcd4","#3498db","#9b59b6","#e74c3c","#f39c12","#27ae60","#e91e63","#ff5722","#ffffff"];
+const CP_FC_SWATCHES=["#f0ede6","#ffffff","#e8e8e8","#f5f0e0","#d4edda","#cce5ff","#ffe5cc","#f0d4ed","#1a1a1a","#333333"];
 
 // ── Color math ─────────────────────────────────────────────────────────────
 function hexToHsv(hex){
@@ -2817,6 +2847,31 @@ function resetAccentColor(){
   saveSettings();
 }
 
+// ── Font color ───────────────────────────────────────────────────────────────
+function applyFontColor(){
+  const hex=_cp["fc"]?.hex;if(!hex)return;
+  const root=document.documentElement;
+  const bright=hexLuminance(hex)>0.4; // is the picked color bright (light text)?
+  root.style.setProperty("--text",hex);
+  if(bright){
+    // Light text — derive faded-down variants by darkening
+    root.style.setProperty("--text2",darkenHex(hex,0.18));
+    root.style.setProperty("--text3",darkenHex(hex,0.42));
+    root.style.setProperty("--text4",darkenHex(hex,0.62));
+  }else{
+    // Dark text — derive faded-up variants by lightening
+    root.style.setProperty("--text2",lightenHex(hex,0.18));
+    root.style.setProperty("--text3",lightenHex(hex,0.42));
+    root.style.setProperty("--text4",lightenHex(hex,0.62));
+  }
+  saveSettings();
+}
+function resetFontColor(){
+  ["--text","--text2","--text3","--text4"].forEach(v=>document.documentElement.style.removeProperty(v));
+  setCpSwatch("fc","#f0ede6");
+  saveSettings();
+}
+
 // ── Persist settings ────────────────────────────────────────────────────────
 function saveSettings(){
   try{
@@ -2827,6 +2882,7 @@ function saveSettings(){
       themeMode:_themeMode||"dark",
       bgColor:_cp["bg"]?.hex||null,
       acColor:_cp["ac"]?.hex||null,
+      fcColor:_cp["fc"]?.hex||null,
     }));
   }catch(e){}
 }
@@ -2847,14 +2903,18 @@ function loadSettings(){
     if(s.fontKey&&FONT_KEY_MAP[s.fontKey])document.documentElement.style.setProperty("--font-family",FONT_KEY_MAP[s.fontKey]);
     if(s.bgColor)setCpSwatch("bg",s.bgColor);
     if(s.acColor){setCpSwatch("ac",s.acColor);applyAccentColor();}
-    // Apply theme last — custom mode will pick up the bgColor set above
+    if(s.fcColor)setCpSwatch("fc",s.fcColor);
+    // Apply theme — custom mode picks up bgColor set above
     applyThemeMode(s.themeMode||"dark");
+    // Font color applied after theme so it overrides theme-derived text vars
+    if(s.fcColor)applyFontColor();
   }catch(e){}
 }
 function initSettingsPage(){
   const savedSettings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
   const bgHex=savedSettings.bgColor||"#0a0a0a";
   const acHex=savedSettings.acColor||"#00d4aa";
+  const fcHex=savedSettings.fcColor||"#f0ede6";
   const fontSize=savedSettings.fontSize||14;
   document.getElementById("font-slider").value=fontSize;
   document.getElementById("font-size-label").textContent=fontSize+"px";
@@ -2864,19 +2924,24 @@ function initSettingsPage(){
     const el=document.getElementById("font-opt-"+k);
     if(el)el.classList.toggle("active",k===savedFontKey);
   });
+  const isLightTheme=_themeMode==="light";
   initColorPicker("bg",bgHex);
   initColorPicker("ac",acHex);
-  buildCpSwatches("bg",isDark?CP_BG_SWATCHES:CP_BG_LIGHT_SWATCHES);
+  initColorPicker("fc",fcHex);
+  buildCpSwatches("bg",isLightTheme?CP_BG_LIGHT_SWATCHES:CP_BG_SWATCHES);
   buildCpSwatches("ac",CP_AC_SWATCHES);
-  // Preset labels
+  buildCpSwatches("fc",CP_FC_SWATCHES);
+  // Presets
   const bgPresets=[{label:"Pure Black",hex:"#0a0a0a"},{label:"Dark Navy",hex:"#0a0d1a"},{label:"Dark Slate",hex:"#0f1117"},{label:"Dark Forest",hex:"#0a1510"},{label:"Dark Purple",hex:"#120a1a"},{label:"Warm Dark",hex:"#1a110a"}];
   const acPresets=[{label:"Teal (Default)",hex:"#00d4aa"},{label:"Blue",hex:"#3498db"},{label:"Purple",hex:"#9b59b6"},{label:"Green",hex:"#27ae60"},{label:"Amber",hex:"#f39c12"},{label:"Pink",hex:"#e91e63"}];
+  const fcPresets=[{label:"Warm White (Default)",hex:"#f0ede6"},{label:"Pure White",hex:"#ffffff"},{label:"Soft Blue",hex:"#cce5ff"},{label:"Mint",hex:"#d4edda"},{label:"Warm Cream",hex:"#f5f0e0"},{label:"Near Black",hex:"#1a1a1a"}];
   const makePresets=(elId,presets,cpId)=>{
     const el=document.getElementById(elId);if(!el)return;
     el.innerHTML=presets.map(p=>`<div onclick="setCpSwatch('${cpId}','${p.hex}')" style="display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px;cursor:pointer;margin-bottom:4px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'"><div style="width:14px;height:14px;border-radius:3px;background:${p.hex};border:1px solid var(--border);flex-shrink:0"></div><span style="font-size:10px;font-family:monospace;color:var(--text3)">${p.label}</span></div>`).join("");
   };
   makePresets("cp-bg-presets",bgPresets,"bg");
   makePresets("cp-ac-presets",acPresets,"ac");
+  makePresets("cp-fc-presets",fcPresets,"fc");
   // Sync theme cards and bg picker visibility with current mode
   _updateThemeUI(_themeMode);
 }
