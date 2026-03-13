@@ -12,6 +12,10 @@
 <meta name="theme-color" content="#0a0a0a" id="theme-color-meta"/>
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230a0a0a'/><text y='68' x='50' text-anchor='middle' font-size='52' font-family='Georgia,serif' fill='%2300d4aa'>j.</text></svg>"/>
 <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22journal.%22%2C%22short_name%22%3A%22journal.%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a0a%22%2C%22theme_color%22%3A%22%230a0a0a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg+xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'+viewBox%3D'0+0+100+100'%3E%3Crect+width%3D'100'+height%3D'100'+rx%3D'22'+fill%3D'%230a0a0a'%2F%3E%3Ctext+y%3D'68'+x%3D'50'+text-anchor%3D'middle'+font-size%3D'52'+font-family%3D'Georgia%2Cserif'+fill%3D'%2300d4aa'%3Ej.%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D"/>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Lora:ital,wght@0,400;1,400&family=Merriweather:wght@300;400&family=JetBrains+Mono:wght@400;500&family=Nunito:wght@400;500&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
 <!-- Firebase SDK (compat – exposes global `firebase` object) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -25,6 +29,8 @@
   --win-bg:#081a10; --win-bdr:#27ae6033;
   --loss-bg:#1a0808; --loss-bdr:#e74c3c33;
   --neu-bg:#0d1a17; --neu-bdr:#00d4aa22;
+  --font-content:14px;
+  --font-family:Georgia,serif;
 }
 [data-theme="light"] {
   --bg:#f5f4f0; --bg2:#ffffff; --bg3:#ebebeb;
@@ -35,7 +41,7 @@
   --neu-bg:#edfaf6; --neu-bdr:#00d4aa44;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);font-family:Georgia,serif;color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+body{background:var(--bg);font-family:var(--font-family);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
 header{border-bottom:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 header h1{font-size:22px;font-weight:400;letter-spacing:-.5px}
 .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -82,7 +88,7 @@ header h1{font-size:22px;font-weight:400;letter-spacing:-.5px}
 .img-zone .img-actions{display:flex;justify-content:space-between;padding:5px 9px;background:var(--neu-bg)}
 .img-zone .img-actions button{background:none;border:none;font-size:10px;font-family:monospace;cursor:pointer}
 .remove-img{color:var(--red)}.img-label{color:var(--text4)}
-textarea{width:100%;background:transparent;border:none;outline:none;padding:12px 14px;color:var(--text);font-size:14px;font-family:Georgia,serif;resize:none;line-height:1.7;display:block}
+textarea{width:100%;background:transparent;border:none;outline:none;padding:12px 14px;color:var(--text);font-size:var(--font-content,14px);font-family:Georgia,serif;resize:none;line-height:1.7;display:block}
 textarea::placeholder{color:var(--text4)}
 .compose-footer{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:7px}
 .left-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
@@ -121,7 +127,7 @@ textarea::placeholder{color:var(--text4)}
 .entry-delete{background:none;border:none;color:var(--border2);cursor:pointer;font-size:14px;transition:color .15s}
 .entry-delete:hover{color:var(--red)}
 .entry-body{padding:0 14px 10px;display:flex;gap:10px}
-.entry-text{flex:1;font-size:12px;line-height:1.6;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.entry-text{flex:1;font-size:var(--font-content,14px);line-height:1.6;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .entry-text.expanded{display:block;overflow:visible}
 .entry-thumb{width:68px;height:46px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border)}
 .entry-footer{padding:0 14px 9px;display:flex;justify-content:flex-end}
@@ -219,7 +225,7 @@ textarea::placeholder{color:var(--text4)}
 .detail-stat:last-child{border-right:none}
 .detail-stat label{font-size:10px;font-family:monospace;color:var(--text4);display:block;margin-bottom:3px}
 .detail-stat span{font-size:13px;font-family:monospace;color:var(--text)}
-.detail-text{padding:14px 18px;font-size:13px;line-height:1.8;color:var(--text2);border-bottom:1px solid var(--border)}
+.detail-text{padding:14px 18px;font-size:var(--font-content,14px);line-height:1.8;color:var(--text2);border-bottom:1px solid var(--border)}
 .detail-text.no-border{border-bottom:none}
 .detail-image{width:100%;max-height:290px;object-fit:contain;background:var(--bg);display:block;cursor:pointer}
 .detail-meta{padding:9px 16px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
@@ -365,7 +371,42 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 .acct-btn.active-funded{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent);color:var(--teal)}
 .acct-btn.active-eval{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber)}
 
-
+/* ── Settings page ── */
+.settings-page{max-width:680px;margin:0 auto;width:100%}
+.settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px 22px;margin-bottom:14px}
+.settings-section-title{font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px;margin-bottom:4px}
+.settings-section-desc{font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:16px;line-height:1.5}
+.font-size-row{display:flex;align-items:center;gap:12px}
+.font-size-row input[type=range]{flex:1;accent-color:var(--teal);height:4px;cursor:pointer}
+.font-size-label{font-size:10px;font-family:monospace;color:var(--teal);width:32px;text-align:right}
+.font-preview{margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-family:var(--font-family);color:var(--text2);line-height:1.7}
+.font-option-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.font-option{padding:10px 16px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;background:var(--bg2);transition:all .15s;min-width:130px;flex:1}
+.font-option:hover{border-color:var(--border3);background:var(--bg3)}
+.font-option.active{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,transparent)}
+.font-option-name{font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px;margin-bottom:5px}
+.font-option-sample{font-size:15px;color:var(--text2);line-height:1.4}
+/* Color picker */
+.cp-wrap{display:flex;gap:18px;flex-wrap:wrap}
+.cp-left{flex:1;min-width:200px}
+.cp-sq-wrap{position:relative;border-radius:4px;overflow:hidden;margin-bottom:8px;cursor:crosshair;user-select:none}
+.cp-sq-wrap canvas{display:block}
+.cp-cursor{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.5);pointer-events:none;transform:translate(-50%,-50%)}
+.cp-hue-wrap{position:relative;border-radius:4px;overflow:hidden;margin-bottom:10px;cursor:pointer;user-select:none}
+.cp-hue-wrap canvas{display:block}
+.cp-hue-cursor{position:absolute;top:0;width:4px;height:100%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none;transform:translateX(-50%)}
+.cp-hex-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cp-preview{width:30px;height:30px;border-radius:4px;border:1px solid var(--border);flex-shrink:0}
+.cp-hex-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 9px;color:var(--text);font-size:12px;font-family:monospace;outline:none}
+.cp-hex-input:focus{border-color:var(--border2)}
+.cp-swatches{display:flex;gap:5px;flex-wrap:wrap}
+.cp-swatch{width:22px;height:22px;border-radius:3px;border:1px solid var(--border);cursor:pointer;transition:transform .1s;flex-shrink:0}
+.cp-swatch:hover{transform:scale(1.18)}
+.cp-right{min-width:140px}
+.cp-apply-btn{width:100%;padding:8px;background:var(--teal);color:#000;border:none;border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;margin-top:8px;font-weight:600}
+.cp-apply-btn:hover{opacity:.85}
+.cp-reset-btn{width:100%;padding:7px;background:transparent;color:var(--text4);border:1px solid var(--border);border-radius:4px;font-size:10px;font-family:monospace;cursor:pointer;margin-top:6px}
+.cp-reset-btn:hover{color:var(--text3)}
 </style>
 </head>
 <body>
@@ -382,6 +423,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
       <button class="nav-tab" onclick="showPage('calendar',this)">📅 Calendar</button>
       <button class="nav-tab" onclick="showPage('patterns',this)">📊 Patterns</button>
       <button class="nav-tab" onclick="showPage('goals',this)">🎯 Goals</button>
+      <button class="nav-tab" onclick="showPage('settings',this)">⚙ Settings</button>
       <button class="nav-tab hidden" id="detail-tab" onclick="showPage('detail',this)">🔍 Entry</button>
     </div>
   </div>
@@ -535,6 +577,124 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 <!-- GOALS -->
 <div class="page full" id="page-goals">
   <div class="goals-grid" id="goals-grid"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page full" id="page-settings">
+  <div class="settings-page">
+
+    <!-- Font Size -->
+    <div class="settings-section">
+      <div class="settings-section-title">FONT SIZE</div>
+      <div class="settings-section-desc">Adjusts the size of journal text throughout the app.</div>
+      <div class="font-size-row">
+        <span style="font-size:11px;font-family:monospace;color:var(--text4)">A</span>
+        <input type="range" id="font-slider" min="12" max="22" step="1" value="14" oninput="applyFontSize(this.value)"/>
+        <span style="font-size:16px;font-family:monospace;color:var(--text4)">A</span>
+        <span class="font-size-label" id="font-size-label">14px</span>
+      </div>
+      <div class="font-preview" id="font-preview" style="font-size:var(--font-content,14px)">The quick brown fox jumped over the lazy dog. This is how your journal entries will look.</div>
+    </div>
+
+    <!-- Font Style -->
+    <div class="settings-section">
+      <div class="settings-section-title">FONT STYLE</div>
+      <div class="settings-section-desc">Choose a typeface for your journal. The preview above updates instantly.</div>
+      <div class="font-option-grid" id="font-option-grid">
+        <div class="font-option active" id="font-opt-georgia" onclick="applyFontFamily('Georgia,serif','georgia')">
+          <div class="font-option-name">GEORGIA</div>
+          <div class="font-option-sample" style="font-family:Georgia,serif">Classic Serif</div>
+        </div>
+        <div class="font-option" id="font-opt-playfair" onclick="applyFontFamily('\'Playfair Display\',Georgia,serif','playfair')">
+          <div class="font-option-name">PLAYFAIR</div>
+          <div class="font-option-sample" style="font-family:'Playfair Display',Georgia,serif">Elegant Serif</div>
+        </div>
+        <div class="font-option" id="font-opt-lora" onclick="applyFontFamily('\'Lora\',Georgia,serif','lora')">
+          <div class="font-option-name">LORA</div>
+          <div class="font-option-sample" style="font-family:'Lora',Georgia,serif">Literary Serif</div>
+        </div>
+        <div class="font-option" id="font-opt-merriweather" onclick="applyFontFamily('\'Merriweather\',Georgia,serif','merriweather')">
+          <div class="font-option-name">MERRIWEATHER</div>
+          <div class="font-option-sample" style="font-family:'Merriweather',Georgia,serif">Readable Serif</div>
+        </div>
+        <div class="font-option" id="font-opt-inter" onclick="applyFontFamily('\'Inter\',system-ui,sans-serif','inter')">
+          <div class="font-option-name">INTER</div>
+          <div class="font-option-sample" style="font-family:'Inter',system-ui,sans-serif">Modern Sans</div>
+        </div>
+        <div class="font-option" id="font-opt-nunito" onclick="applyFontFamily('\'Nunito\',system-ui,sans-serif','nunito')">
+          <div class="font-option-name">NUNITO</div>
+          <div class="font-option-sample" style="font-family:'Nunito',system-ui,sans-serif">Rounded Sans</div>
+        </div>
+        <div class="font-option" id="font-opt-mono" onclick="applyFontFamily('\'JetBrains Mono\',monospace','mono')">
+          <div class="font-option-name">JETBRAINS MONO</div>
+          <div class="font-option-sample" style="font-family:'JetBrains Mono',monospace">Terminal</div>
+        </div>
+        <div class="font-option" id="font-opt-system" onclick="applyFontFamily('system-ui,-apple-system,sans-serif','system')">
+          <div class="font-option-name">SYSTEM DEFAULT</div>
+          <div class="font-option-sample" style="font-family:system-ui,-apple-system,sans-serif">Native UI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Color -->
+    <div class="settings-section">
+      <div class="settings-section-title">BACKGROUND COLOR</div>
+      <div class="settings-section-desc">Customize the background shade. Pick any color — the surrounding tones are derived automatically.</div>
+      <div class="cp-wrap">
+        <div class="cp-left">
+          <div class="cp-sq-wrap" id="cp-bg-sq-wrap">
+            <canvas id="cp-bg-sq" width="220" height="180"></canvas>
+            <div class="cp-cursor" id="cp-bg-cursor"></div>
+          </div>
+          <div class="cp-hue-wrap" id="cp-bg-hue-wrap">
+            <canvas id="cp-bg-hue" width="220" height="14"></canvas>
+            <div class="cp-hue-cursor" id="cp-bg-hue-cursor"></div>
+          </div>
+          <div class="cp-hex-row">
+            <div class="cp-preview" id="cp-bg-preview"></div>
+            <input class="cp-hex-input" id="cp-bg-hex" type="text" maxlength="7" placeholder="#0a0a0a" oninput="onCpHexInput('bg')"/>
+          </div>
+          <div class="cp-swatches" id="cp-bg-swatches"></div>
+        </div>
+        <div class="cp-right">
+          <div style="font-size:10px;font-family:monospace;color:var(--text4);margin-bottom:8px;letter-spacing:.5px">PRESETS</div>
+          <div id="cp-bg-presets"></div>
+          <button class="cp-apply-btn" onclick="applyBgColor()">Apply</button>
+          <button class="cp-reset-btn" onclick="resetBgColor()">Reset to Default</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accent Color -->
+    <div class="settings-section">
+      <div class="settings-section-title">ACCENT COLOR</div>
+      <div class="settings-section-desc">The teal highlight used for analysis panels, tags, and interactive elements.</div>
+      <div class="cp-wrap">
+        <div class="cp-left">
+          <div class="cp-sq-wrap" id="cp-ac-sq-wrap">
+            <canvas id="cp-ac-sq" width="220" height="180"></canvas>
+            <div class="cp-cursor" id="cp-ac-cursor"></div>
+          </div>
+          <div class="cp-hue-wrap" id="cp-ac-hue-wrap">
+            <canvas id="cp-ac-hue" width="220" height="14"></canvas>
+            <div class="cp-hue-cursor" id="cp-ac-hue-cursor"></div>
+          </div>
+          <div class="cp-hex-row">
+            <div class="cp-preview" id="cp-ac-preview"></div>
+            <input class="cp-hex-input" id="cp-ac-hex" type="text" maxlength="7" placeholder="#00d4aa" oninput="onCpHexInput('ac')"/>
+          </div>
+          <div class="cp-swatches" id="cp-ac-swatches"></div>
+        </div>
+        <div class="cp-right">
+          <div style="font-size:10px;font-family:monospace;color:var(--text4);margin-bottom:8px;letter-spacing:.5px">PRESETS</div>
+          <div id="cp-ac-presets"></div>
+          <button class="cp-apply-btn" onclick="applyAccentColor()">Apply</button>
+          <button class="cp-reset-btn" onclick="resetAccentColor()">Reset to Default</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- DETAIL -->
@@ -975,6 +1135,7 @@ function showPage(p,el){
   if(p==="calendar")renderCalendar();
   if(p==="patterns")renderPatterns();
   if(p==="goals")renderGoals();
+  if(p==="settings")initSettingsPage();
 }
 
 // ── Mode & Time-sensitive ──────────────────────────────────────────────────
@@ -2249,6 +2410,268 @@ function saveWeeklyReview(){
   openDetailPage(entry.id);
 }
 
+// ── Settings ───────────────────────────────────────────────────────────────
+const SETTINGS_KEY="journal_settings_v1";
+const CP_BG_SWATCHES=["#0a0a0a","#0a0d1a","#0f1117","#0a1510","#120a1a","#1a110a","#1a1a2e","#101820","#0d0d0d","#0f0f12"];
+const CP_BG_LIGHT_SWATCHES=["#f5f4f0","#faf8f4","#f0f4fa","#fdf5f0","#f4f0fa","#f0faf4","#ffffff","#f8f6f0","#eef2f7","#faf4ee"];
+const CP_AC_SWATCHES=["#00d4aa","#00bcd4","#3498db","#9b59b6","#e74c3c","#f39c12","#27ae60","#e91e63","#ff5722","#ffffff"];
+
+// ── Color math ─────────────────────────────────────────────────────────────
+function hexToHsv(hex){
+  hex=hex.replace("#","");
+  if(hex.length===3)hex=hex.split("").map(c=>c+c).join("");
+  const r=parseInt(hex.slice(0,2),16)/255,g=parseInt(hex.slice(2,4),16)/255,b=parseInt(hex.slice(4,6),16)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0;const s=max===0?0:d/max;const v=max;
+  if(d){if(max===r)h=((g-b)/d+6)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;}
+  return{h,s,v};
+}
+function hsvToHex(h,s,v){
+  const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};
+  return"#"+[f(5),f(3),f(1)].map(x=>Math.round(x*255).toString(16).padStart(2,"0")).join("");
+}
+function lightenHex(hex,amt){
+  const{h,s,v}=hexToHsv(hex);
+  return hsvToHex(h,Math.max(0,s*(1-amt*0.5)),Math.min(1,v+amt));
+}
+function darkenHex(hex,amt){
+  const{h,s,v}=hexToHsv(hex);
+  return hsvToHex(h,s,Math.max(0,v-amt));
+}
+function isHexDark(hex){return hexToHsv(hex).v<0.4;}
+
+// ── Color Picker ────────────────────────────────────────────────────────────
+const _cp={};
+function initColorPicker(id,defaultHex){
+  const sq=document.getElementById("cp-"+id+"-sq");
+  const hueCanvas=document.getElementById("cp-"+id+"-hue");
+  const cursor=document.getElementById("cp-"+id+"-cursor");
+  const hueCursor=document.getElementById("cp-"+id+"-hue-cursor");
+  const hexInput=document.getElementById("cp-"+id+"-hex");
+  const preview=document.getElementById("cp-"+id+"-preview");
+  if(!sq||!hueCanvas)return;
+  const {h,s,v}=hexToHsv(defaultHex);
+  _cp[id]={h,s,v,hex:defaultHex};
+  hexInput.value=defaultHex;
+  preview.style.background=defaultHex;
+  _cpDrawAll(id);
+
+  // Hue slider interaction
+  let draggingHue=false,draggingSq=false;
+  const getHueFromEvent=e=>{
+    const r=hueCanvas.getBoundingClientRect();
+    const x=(e.clientX??e.touches?.[0]?.clientX??0)-r.left;
+    _cp[id].h=Math.max(0,Math.min(360,x/r.width*360));
+    _cpUpdate(id);
+  };
+  const getSvFromEvent=e=>{
+    const r=sq.getBoundingClientRect();
+    const x=(e.clientX??e.touches?.[0]?.clientX??0)-r.left;
+    const y=(e.clientY??e.touches?.[0]?.clientY??0)-r.top;
+    _cp[id].s=Math.max(0,Math.min(1,x/r.width));
+    _cp[id].v=Math.max(0,Math.min(1,1-y/r.height));
+    _cpUpdate(id);
+  };
+  hueCanvas.addEventListener("mousedown",e=>{draggingHue=true;getHueFromEvent(e);});
+  sq.addEventListener("mousedown",e=>{draggingSq=true;getSvFromEvent(e);});
+  document.addEventListener("mousemove",e=>{if(draggingHue)getHueFromEvent(e);if(draggingSq)getSvFromEvent(e);});
+  document.addEventListener("mouseup",()=>{draggingHue=false;draggingSq=false;});
+  hueCanvas.addEventListener("touchstart",e=>{e.preventDefault();draggingHue=true;getHueFromEvent(e);},{passive:false});
+  hueCanvas.addEventListener("touchmove",e=>{e.preventDefault();if(draggingHue)getHueFromEvent(e);},{passive:false});
+  sq.addEventListener("touchstart",e=>{e.preventDefault();draggingSq=true;getSvFromEvent(e);},{passive:false});
+  sq.addEventListener("touchmove",e=>{e.preventDefault();if(draggingSq)getSvFromEvent(e);},{passive:false});
+  document.addEventListener("touchend",()=>{draggingHue=false;draggingSq=false;});
+}
+function _cpDrawAll(id){
+  _cpDrawSq(id);_cpDrawHue(id);_cpUpdateCursors(id);
+}
+function _cpDrawSq(id){
+  const sq=document.getElementById("cp-"+id+"-sq");if(!sq)return;
+  const{h}=_cp[id];const W=sq.width,H=sq.height;
+  const ctx=sq.getContext("2d");
+  const hueHex=hsvToHex(h,1,1);
+  const gH=ctx.createLinearGradient(0,0,W,0);
+  gH.addColorStop(0,"#ffffff");gH.addColorStop(1,hueHex);
+  ctx.fillStyle=gH;ctx.fillRect(0,0,W,H);
+  const gV=ctx.createLinearGradient(0,0,0,H);
+  gV.addColorStop(0,"rgba(0,0,0,0)");gV.addColorStop(1,"#000");
+  ctx.fillStyle=gV;ctx.fillRect(0,0,W,H);
+}
+function _cpDrawHue(id){
+  const c=document.getElementById("cp-"+id+"-hue");if(!c)return;
+  const ctx=c.getContext("2d");const W=c.width,H=c.height;
+  const g=ctx.createLinearGradient(0,0,W,0);
+  for(let i=0;i<=6;i++)g.addColorStop(i/6,`hsl(${i*60},100%,50%)`);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+function _cpUpdateCursors(id){
+  const sq=document.getElementById("cp-"+id+"-sq");
+  const cursor=document.getElementById("cp-"+id+"-cursor");
+  const hueCursor=document.getElementById("cp-"+id+"-hue-cursor");
+  const{h,s,v}=_cp[id];
+  if(sq&&cursor){
+    cursor.style.left=(s*sq.width)+"px";
+    cursor.style.top=((1-v)*sq.height)+"px";
+  }
+  if(hueCursor){
+    const hueCanvas=document.getElementById("cp-"+id+"-hue");
+    if(hueCanvas)hueCursor.style.left=(h/360*hueCanvas.width)+"px";
+  }
+}
+function _cpUpdate(id){
+  const{h,s,v}=_cp[id];
+  const hex=hsvToHex(h,s,v);
+  _cp[id].hex=hex;
+  const hexInput=document.getElementById("cp-"+id+"-hex");
+  const preview=document.getElementById("cp-"+id+"-preview");
+  if(hexInput)hexInput.value=hex;
+  if(preview)preview.style.background=hex;
+  _cpDrawSq(id);_cpDrawHue(id);_cpUpdateCursors(id);
+}
+function onCpHexInput(id){
+  const input=document.getElementById("cp-"+id+"-hex");if(!input)return;
+  let val=input.value.trim();
+  if(!val.startsWith("#"))val="#"+val;
+  if(val.length===7&&/^#[0-9a-fA-F]{6}$/.test(val)){
+    const{h,s,v}=hexToHsv(val);
+    _cp[id]={h,s,v,hex:val};
+    const preview=document.getElementById("cp-"+id+"-preview");
+    if(preview)preview.style.background=val;
+    _cpDrawSq(id);_cpDrawHue(id);_cpUpdateCursors(id);
+  }
+}
+function setCpSwatch(id,hex){
+  const{h,s,v}=hexToHsv(hex);
+  _cp[id]={h,s,v,hex};
+  const hexInput=document.getElementById("cp-"+id+"-hex");
+  const preview=document.getElementById("cp-"+id+"-preview");
+  if(hexInput)hexInput.value=hex;
+  if(preview)preview.style.background=hex;
+  _cpDrawAll(id);
+}
+function buildCpSwatches(id,swatches){
+  const el=document.getElementById("cp-"+id+"-swatches");
+  if(el)el.innerHTML=swatches.map(c=>`<div class="cp-swatch" style="background:${c}" onclick="setCpSwatch('${id}','${c}')" title="${c}"></div>`).join("");
+}
+
+// ── Font family ─────────────────────────────────────────────────────────────
+const FONT_OPTIONS=["georgia","playfair","lora","merriweather","inter","nunito","mono","system"];
+function applyFontFamily(fontValue,key){
+  document.documentElement.style.setProperty("--font-family",fontValue);
+  FONT_OPTIONS.forEach(k=>{
+    const el=document.getElementById("font-opt-"+k);
+    if(el)el.classList.toggle("active",k===key);
+  });
+  saveSettings();
+}
+
+// ── Font size ───────────────────────────────────────────────────────────────
+function applyFontSize(size){
+  document.documentElement.style.setProperty("--font-content",size+"px");
+  const lbl=document.getElementById("font-size-label");
+  if(lbl)lbl.textContent=size+"px";
+  const slider=document.getElementById("font-slider");
+  if(slider)slider.value=size;
+  saveSettings();
+}
+
+// ── Background color ────────────────────────────────────────────────────────
+function applyBgColor(){
+  const hex=_cp["bg"]?.hex;if(!hex)return;
+  const dark=isHexDark(hex);
+  document.documentElement.style.setProperty("--bg",hex);
+  document.documentElement.style.setProperty("--bg2",dark?lightenHex(hex,0.06):darkenHex(hex,0.04));
+  document.documentElement.style.setProperty("--bg3",dark?lightenHex(hex,0.12):darkenHex(hex,0.08));
+  document.documentElement.style.setProperty("--border",dark?lightenHex(hex,0.16):darkenHex(hex,0.12));
+  document.documentElement.style.setProperty("--border2",dark?lightenHex(hex,0.22):darkenHex(hex,0.18));
+  document.documentElement.style.setProperty("--border3",dark?lightenHex(hex,0.30):darkenHex(hex,0.25));
+  saveSettings();
+}
+function resetBgColor(){
+  const isDark=document.documentElement.getAttribute("data-theme")!=="light";
+  ["--bg","--bg2","--bg3","--border","--border2","--border3"].forEach(v=>document.documentElement.style.removeProperty(v));
+  const defaultHex=isDark?"#0a0a0a":"#f5f4f0";
+  setCpSwatch("bg",defaultHex);
+  saveSettings();
+}
+
+// ── Accent color ────────────────────────────────────────────────────────────
+function applyAccentColor(){
+  const hex=_cp["ac"]?.hex;if(!hex)return;
+  document.documentElement.style.setProperty("--teal",hex);
+  document.documentElement.style.setProperty("--neu-bg",hex+"18");
+  document.documentElement.style.setProperty("--neu-bdr",hex+"33");
+  saveSettings();
+}
+function resetAccentColor(){
+  ["--teal","--neu-bg","--neu-bdr"].forEach(v=>document.documentElement.style.removeProperty(v));
+  setCpSwatch("ac","#00d4aa");
+  saveSettings();
+}
+
+// ── Persist settings ────────────────────────────────────────────────────────
+function saveSettings(){
+  try{
+    const activeFont=document.querySelector(".font-option.active");
+    localStorage.setItem(SETTINGS_KEY,JSON.stringify({
+      fontSize:parseInt(document.getElementById("font-slider")?.value||14),
+      fontKey:activeFont?activeFont.id.replace("font-opt-",""):null,
+      bgColor:_cp["bg"]?.hex||null,
+      acColor:_cp["ac"]?.hex||null,
+    }));
+  }catch(e){}
+}
+const FONT_KEY_MAP={
+  georgia:"Georgia,serif",
+  playfair:"'Playfair Display',Georgia,serif",
+  lora:"'Lora',Georgia,serif",
+  merriweather:"'Merriweather',Georgia,serif",
+  inter:"'Inter',system-ui,sans-serif",
+  nunito:"'Nunito',system-ui,sans-serif",
+  mono:"'JetBrains Mono',monospace",
+  system:"system-ui,-apple-system,sans-serif",
+};
+function loadSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
+    if(s.fontSize){applyFontSize(s.fontSize);}
+    if(s.fontKey&&FONT_KEY_MAP[s.fontKey]){
+      document.documentElement.style.setProperty("--font-family",FONT_KEY_MAP[s.fontKey]);
+    }
+    if(s.bgColor){setCpSwatch("bg",s.bgColor);applyBgColor();}
+    if(s.acColor){setCpSwatch("ac",s.acColor);applyAccentColor();}
+  }catch(e){}
+}
+function initSettingsPage(){
+  const isDark=document.documentElement.getAttribute("data-theme")!=="light";
+  const defaultBg=isDark?"#0a0a0a":"#f5f4f0";
+  const savedSettings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
+  const bgHex=savedSettings.bgColor||defaultBg;
+  const acHex=savedSettings.acColor||"#00d4aa";
+  const fontSize=savedSettings.fontSize||14;
+  document.getElementById("font-slider").value=fontSize;
+  document.getElementById("font-size-label").textContent=fontSize+"px";
+  // Highlight saved font option
+  const savedFontKey=savedSettings.fontKey||"georgia";
+  FONT_OPTIONS.forEach(k=>{
+    const el=document.getElementById("font-opt-"+k);
+    if(el)el.classList.toggle("active",k===savedFontKey);
+  });
+  initColorPicker("bg",bgHex);
+  initColorPicker("ac",acHex);
+  buildCpSwatches("bg",isDark?CP_BG_SWATCHES:CP_BG_LIGHT_SWATCHES);
+  buildCpSwatches("ac",CP_AC_SWATCHES);
+  // Preset labels
+  const bgPresets=[{label:"Pure Black",hex:"#0a0a0a"},{label:"Dark Navy",hex:"#0a0d1a"},{label:"Dark Slate",hex:"#0f1117"},{label:"Dark Forest",hex:"#0a1510"},{label:"Dark Purple",hex:"#120a1a"},{label:"Warm Dark",hex:"#1a110a"}];
+  const acPresets=[{label:"Teal (Default)",hex:"#00d4aa"},{label:"Blue",hex:"#3498db"},{label:"Purple",hex:"#9b59b6"},{label:"Green",hex:"#27ae60"},{label:"Amber",hex:"#f39c12"},{label:"Pink",hex:"#e91e63"}];
+  const makePresets=(elId,presets,cpId)=>{
+    const el=document.getElementById(elId);if(!el)return;
+    el.innerHTML=presets.map(p=>`<div onclick="setCpSwatch('${cpId}','${p.hex}')" style="display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px;cursor:pointer;margin-bottom:4px" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'"><div style="width:14px;height:14px;border-radius:3px;background:${p.hex};border:1px solid var(--border);flex-shrink:0"></div><span style="font-size:10px;font-family:monospace;color:var(--text3)">${p.label}</span></div>`).join("");
+  };
+  makePresets("cp-bg-presets",bgPresets,"bg");
+  makePresets("cp-ac-presets",acPresets,"ac");
+}
+
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
   initFirebase();
@@ -2268,6 +2691,7 @@ function initApp(){
   setMode("trading");
   renderMiniFeeed();
   updateEntryCount();
+  loadSettings();
 }
 document.addEventListener("DOMContentLoaded",initApp);
 
