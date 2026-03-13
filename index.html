@@ -1270,7 +1270,7 @@ function renderPatterns(){
   const expectancy=trades.length?totalPnl/trades.length:0;
   // ── Average grade ──────────────────────────────────────────────────────
   const GVAL={"F":0,"D":1,"C":2,"B":3,"A":4,"A+":5};
-  const gradedTrades=trades.filter(e=>e.grade&&GVAL[e.grade]!=null);
+  const gradedTrades=filtered.filter(e=>e.grade&&GVAL[e.grade]!=null);
   let avgGradeStr="—",avgGradeCls="";
   if(gradedTrades.length){
     const avg=gradedTrades.reduce((s,e)=>s+GVAL[e.grade],0)/gradedTrades.length;
