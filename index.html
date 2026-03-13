@@ -63,13 +63,15 @@ header h1{font-size:1.57rem;font-weight:400;letter-spacing:-.5px}
 .nav-tab.hidden{display:none}
 .page{display:none;max-width:1200px;margin:0 auto;padding:24px 28px}
 .page.active{display:flex;gap:22px}
+#page-compose{min-height:calc(100vh - 90px);align-items:stretch}
 .page.full{display:none;flex-direction:column}
 .page.full.active{display:flex}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden}
 .card-header{padding:10px 14px;border-bottom:1px solid var(--border);font-size:var(--font-small);font-family:monospace;color:var(--text4);letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between}
 .card-header span{color:var(--teal)}
-.compose-col{flex:1;min-width:0}
-.analysis-col{width:300px;flex-shrink:0}
+.compose-col{flex:1;min-width:0;display:flex;flex-direction:column}
+.compose-col .card{flex:1;display:flex;flex-direction:column}
+.analysis-col{width:300px;flex-shrink:0;align-self:flex-start}
 .mode-row{display:flex;gap:7px;padding:12px 14px;border-bottom:1px solid var(--border)}
 .mode-btn{flex:1;padding:7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:0.79rem;font-family:monospace;cursor:pointer;transition:all .15s;text-align:center}
 .mode-btn.active{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,transparent);color:var(--teal)}
@@ -91,7 +93,7 @@ header h1{font-size:1.57rem;font-weight:400;letter-spacing:-.5px}
 .img-zone .img-actions{display:flex;justify-content:space-between;padding:5px 9px;background:var(--neu-bg)}
 .img-zone .img-actions button{background:none;border:none;font-size:0.71rem;font-family:monospace;cursor:pointer}
 .remove-img{color:var(--red)}.img-label{color:var(--text4)}
-textarea{width:100%;background:transparent;border:none;outline:none;padding:12px 14px;color:var(--text);font-size:var(--font-content,14px);font-family:Georgia,serif;resize:none;line-height:1.7;display:block}
+textarea{width:100%;background:transparent;border:none;outline:none;padding:12px 14px;color:var(--text);font-size:var(--font-content,14px);font-family:Georgia,serif;resize:none;line-height:1.7;display:block;flex:1;min-height:220px}
 textarea::placeholder{color:var(--text4)}
 .compose-footer{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:7px}
 .left-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
@@ -311,8 +313,9 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   .meta-pill, .save-indicator { font-size:0.71rem; }
 
   /* Compose: single column on mobile */
-  #page-compose { flex-direction:column; padding:14px 12px; gap:14px; }
-  .compose-col { width:100%; }
+  #page-compose { flex-direction:column; padding:14px 12px; gap:14px; min-height:unset; align-items:stretch; }
+  .compose-col { width:100%; flex:none; }
+  #note-input { min-height:160px; }
   .analysis-col { width:100%; }
 
   /* Trade fields: 2-column grid on mobile */
@@ -530,7 +533,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
       <div class="status-bar" id="status-bar"><div class="dot" id="status-dot"></div><span class="status-text" id="status-text"></span></div>
       <div id="img-zone" class="img-zone" onclick="triggerImgUpload()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleImgDrop(event)">📎 Attach Chart or Image (Click or Drag)</div>
       <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImgFile(this.files[0])"/>
-      <textarea id="note-input" rows="5" placeholder="Describe your trade, thoughts, or anything else..."></textarea>
+      <textarea id="note-input" rows="10" placeholder="Describe your trade, thoughts, or anything else..."></textarea>
       <!-- Time-sensitive toggle (journal mode only) -->
       <label class="timesens-toggle" id="timesens-toggle" onclick="toggleTimeSens()" style="display:none">
         <input type="checkbox" id="timesens-check" onclick="event.stopPropagation()"/> ⏰ time-sensitive reminder
