@@ -307,7 +307,6 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   .header-right { gap:8px; width:100%; justify-content:space-between; }
   .nav-tabs { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
   .nav-tab { padding:6px 10px; font-size:10px; white-space:nowrap; flex-shrink:0; }
-  .theme-toggle { font-size:14px; }
   .meta-pill, .save-indicator { font-size:10px; }
 
   /* Compose: single column on mobile */
@@ -403,6 +402,17 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 
 /* ── Settings page ── */
 .settings-page{max-width:680px;margin:0 auto;width:100%}
+.theme-card-row{display:flex;gap:10px;margin-top:12px}
+.theme-card{flex:1;border:1px solid var(--border2);border-radius:6px;cursor:pointer;background:var(--bg3);transition:all .15s;overflow:hidden;min-width:80px}
+.theme-card:hover{border-color:var(--border3)}
+.theme-card.active{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.theme-card-preview{height:52px;border-bottom:1px solid var(--border)}
+.dark-preview{background:linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)}
+.light-preview{background:linear-gradient(135deg,#f5f4f0 0%,#ffffff 100%)}
+.custom-preview{background:var(--bg);position:relative}
+.custom-preview::after{content:"🎨";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.theme-card-label{font-size:10px;font-family:monospace;color:var(--text3);padding:7px 10px;text-align:center;letter-spacing:.5px}
+.theme-card.active .theme-card-label{color:var(--teal)}
 .settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px 22px;margin-bottom:14px}
 .settings-section-title{font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px;margin-bottom:4px}
 .settings-section-desc{font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:16px;line-height:1.5}
@@ -445,7 +455,6 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   <div class="header-right">
     <span class="save-indicator" id="save-indicator">💾 saved</span>
     <span class="meta-pill" id="entry-count">0 entries</span>
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
     <button class="sync-btn" id="sync-btn" title="Sign in with Google to sync between iPhone &amp; desktop">&#9729; sync</button>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showPage('compose',this)">✏ Compose</button>
@@ -613,6 +622,26 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 <div class="page full" id="page-settings">
   <div class="settings-page">
 
+    <!-- Theme Mode -->
+    <div class="settings-section">
+      <div class="settings-section-title">THEME</div>
+      <div class="settings-section-desc">Choose your display mode. Select Custom to use your own background color.</div>
+      <div class="theme-card-row">
+        <div class="theme-card active" id="theme-card-dark" onclick="applyThemeMode('dark')">
+          <div class="theme-card-preview dark-preview"></div>
+          <div class="theme-card-label">DARK</div>
+        </div>
+        <div class="theme-card" id="theme-card-light" onclick="applyThemeMode('light')">
+          <div class="theme-card-preview light-preview"></div>
+          <div class="theme-card-label">LIGHT</div>
+        </div>
+        <div class="theme-card" id="theme-card-custom" onclick="applyThemeMode('custom')">
+          <div class="theme-card-preview custom-preview" id="theme-custom-preview"></div>
+          <div class="theme-card-label">CUSTOM</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Font Size -->
     <div class="settings-section">
       <div class="settings-section-title">FONT SIZE</div>
@@ -666,7 +695,8 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
       </div>
     </div>
 
-    <!-- Background Color -->
+    <!-- Background Color (only shown in Custom mode) -->
+    <div id="settings-bg-cp-section" style="display:none">
     <div class="settings-section">
       <div class="settings-section-title">BACKGROUND COLOR</div>
       <div class="settings-section-desc">Customize the background shade. Pick any color — the surrounding tones are derived automatically.</div>
@@ -694,6 +724,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
         </div>
       </div>
     </div>
+    </div><!-- /settings-bg-cp-section -->
 
     <!-- Accent Color -->
     <div class="settings-section">
@@ -1093,18 +1124,68 @@ function compressImage(dataUrl,maxW,quality,cb){
   img.src=dataUrl;
 }
 
-// ── Theme (runs immediately, before DOM ready) ─────────────────────────────
-function toggleTheme(){
-  const isDark=document.documentElement.getAttribute("data-theme")==="dark";
-  const next=isDark?"light":"dark";
-  document.documentElement.setAttribute("data-theme",next);
-  document.getElementById("theme-toggle").textContent=next==="dark"?"🌙":"☀️";
-  document.getElementById("theme-color-meta").setAttribute("content",next==="dark"?"#0a0a0a":"#f5f4f0");
-  try{localStorage.setItem(THEME_KEY,next);}catch(e){}
-  // Redraw radar if patterns tab is visible
-  if(document.getElementById("page-patterns").classList.contains("active")) renderPatterns();
+// ── Theme (3-mode: dark / light / custom) ─────────────────────────────────
+let _themeMode="dark";
+function applyThemeMode(mode){
+  _themeMode=mode;
+  const root=document.documentElement;
+  const clearVars=["--bg","--bg2","--bg3","--border","--border2","--border3","--text","--text2","--text3","--text4"];
+  if(mode==="dark"){
+    root.setAttribute("data-theme","dark");
+    clearVars.forEach(v=>root.style.removeProperty(v));
+    document.getElementById("theme-color-meta")?.setAttribute("content","#0a0a0a");
+  } else if(mode==="light"){
+    root.setAttribute("data-theme","light");
+    clearVars.forEach(v=>root.style.removeProperty(v));
+    document.getElementById("theme-color-meta")?.setAttribute("content","#f5f4f0");
+  } else { // custom
+    root.setAttribute("data-theme","dark");
+    const hex=_cp["bg"]?.hex;
+    if(hex){
+      const dark=isHexDark(hex);
+      root.style.setProperty("--bg",hex);
+      root.style.setProperty("--bg2",dark?lightenHex(hex,0.06):darkenHex(hex,0.04));
+      root.style.setProperty("--bg3",dark?lightenHex(hex,0.12):darkenHex(hex,0.08));
+      root.style.setProperty("--border",dark?lightenHex(hex,0.16):darkenHex(hex,0.12));
+      root.style.setProperty("--border2",dark?lightenHex(hex,0.22):darkenHex(hex,0.18));
+      root.style.setProperty("--border3",dark?lightenHex(hex,0.30):darkenHex(hex,0.25));
+      if(dark){
+        root.style.setProperty("--text","#f0ede6");
+        root.style.setProperty("--text2","#cccccc");
+        root.style.setProperty("--text3","#999999");
+        root.style.setProperty("--text4","#666666");
+      } else {
+        root.style.setProperty("--text","#111111");
+        root.style.setProperty("--text2","#333333");
+        root.style.setProperty("--text3","#666666");
+        root.style.setProperty("--text4","#999999");
+      }
+      document.getElementById("theme-color-meta")?.setAttribute("content",hex);
+    }
+  }
+  _updateThemeUI(mode);
+  saveSettings();
+  if(document.getElementById("page-patterns")?.classList.contains("active"))renderPatterns();
 }
-(function(){try{const t=localStorage.getItem(THEME_KEY);if(t){document.documentElement.setAttribute("data-theme",t);document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}})();
+function _updateThemeUI(mode){
+  ["dark","light","custom"].forEach(m=>{
+    document.getElementById("theme-card-"+m)?.classList.toggle("active",m===mode);
+  });
+  // Show bg color picker only in custom mode
+  const sec=document.getElementById("settings-bg-cp-section");
+  if(sec)sec.style.display=mode==="custom"?"":"none";
+  // Update custom preview swatch
+  const prev=document.getElementById("theme-custom-preview");
+  if(prev&&_cp["bg"]?.hex)prev.style.background=_cp["bg"].hex;
+}
+// Apply saved theme before DOM paint to avoid flash
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem("journal_settings_v1")||"{}");
+    const t=s.themeMode||localStorage.getItem("journal_theme")||"dark";
+    document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark");
+  }catch(e){}
+})();
 
 // ── Storage ────────────────────────────────────────────────────────────────
 function loadData(key,fallback){try{const s=localStorage.getItem(key);if(s)return JSON.parse(s);}catch(e){}return fallback();}
@@ -2718,37 +2799,9 @@ function applyFontSize(size){
   saveSettings();
 }
 
-// ── Background color ────────────────────────────────────────────────────────
-function applyBgColor(){
-  const hex=_cp["bg"]?.hex;if(!hex)return;
-  const dark=isHexDark(hex);
-  document.documentElement.style.setProperty("--bg",hex);
-  document.documentElement.style.setProperty("--bg2",dark?lightenHex(hex,0.06):darkenHex(hex,0.04));
-  document.documentElement.style.setProperty("--bg3",dark?lightenHex(hex,0.12):darkenHex(hex,0.08));
-  document.documentElement.style.setProperty("--border",dark?lightenHex(hex,0.16):darkenHex(hex,0.12));
-  document.documentElement.style.setProperty("--border2",dark?lightenHex(hex,0.22):darkenHex(hex,0.18));
-  document.documentElement.style.setProperty("--border3",dark?lightenHex(hex,0.30):darkenHex(hex,0.25));
-  // Adapt text colors so they always stay readable regardless of background hue
-  if(dark){
-    document.documentElement.style.setProperty("--text","#f0ede6");
-    document.documentElement.style.setProperty("--text2","#cccccc");
-    document.documentElement.style.setProperty("--text3","#999999");
-    document.documentElement.style.setProperty("--text4","#666666");
-  }else{
-    document.documentElement.style.setProperty("--text","#111111");
-    document.documentElement.style.setProperty("--text2","#333333");
-    document.documentElement.style.setProperty("--text3","#666666");
-    document.documentElement.style.setProperty("--text4","#999999");
-  }
-  saveSettings();
-}
-function resetBgColor(){
-  const isDark=document.documentElement.getAttribute("data-theme")!=="light";
-  ["--bg","--bg2","--bg3","--border","--border2","--border3","--text","--text2","--text3","--text4"].forEach(v=>document.documentElement.style.removeProperty(v));
-  const defaultHex=isDark?"#0a0a0a":"#f5f4f0";
-  setCpSwatch("bg",defaultHex);
-  saveSettings();
-}
+// ── Background color — delegates to applyThemeMode("custom") ────────────────
+function applyBgColor(){applyThemeMode("custom");}
+function resetBgColor(){setCpSwatch("bg","#0a0a0a");applyThemeMode("dark");}
 
 // ── Accent color ────────────────────────────────────────────────────────────
 function applyAccentColor(){
@@ -2771,6 +2824,7 @@ function saveSettings(){
     localStorage.setItem(SETTINGS_KEY,JSON.stringify({
       fontSize:parseInt(document.getElementById("font-slider")?.value||14),
       fontKey:activeFont?activeFont.id.replace("font-opt-",""):null,
+      themeMode:_themeMode||"dark",
       bgColor:_cp["bg"]?.hex||null,
       acColor:_cp["ac"]?.hex||null,
     }));
@@ -2789,19 +2843,17 @@ const FONT_KEY_MAP={
 function loadSettings(){
   try{
     const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
-    if(s.fontSize){applyFontSize(s.fontSize);}
-    if(s.fontKey&&FONT_KEY_MAP[s.fontKey]){
-      document.documentElement.style.setProperty("--font-family",FONT_KEY_MAP[s.fontKey]);
-    }
-    if(s.bgColor){setCpSwatch("bg",s.bgColor);applyBgColor();}
+    if(s.fontSize)applyFontSize(s.fontSize);
+    if(s.fontKey&&FONT_KEY_MAP[s.fontKey])document.documentElement.style.setProperty("--font-family",FONT_KEY_MAP[s.fontKey]);
+    if(s.bgColor)setCpSwatch("bg",s.bgColor);
     if(s.acColor){setCpSwatch("ac",s.acColor);applyAccentColor();}
+    // Apply theme last — custom mode will pick up the bgColor set above
+    applyThemeMode(s.themeMode||"dark");
   }catch(e){}
 }
 function initSettingsPage(){
-  const isDark=document.documentElement.getAttribute("data-theme")!=="light";
-  const defaultBg=isDark?"#0a0a0a":"#f5f4f0";
   const savedSettings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
-  const bgHex=savedSettings.bgColor||defaultBg;
+  const bgHex=savedSettings.bgColor||"#0a0a0a";
   const acHex=savedSettings.acColor||"#00d4aa";
   const fontSize=savedSettings.fontSize||14;
   document.getElementById("font-slider").value=fontSize;
@@ -2825,13 +2877,13 @@ function initSettingsPage(){
   };
   makePresets("cp-bg-presets",bgPresets,"bg");
   makePresets("cp-ac-presets",acPresets,"ac");
+  // Sync theme cards and bg picker visibility with current mode
+  _updateThemeUI(_themeMode);
 }
 
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
   initFirebase();
-  // Apply saved theme label
-  try{const t=localStorage.getItem(THEME_KEY);if(t){document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}
   // Build tag buttons
   const tagBtnsEl=document.getElementById("tag-buttons");
   TAGS.forEach(t=>{
