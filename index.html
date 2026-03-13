@@ -31,6 +31,8 @@
   --neu-bg:#0d1a17; --neu-bdr:#00d4aa22;
   --font-content:14px;
   --font-family:Georgia,serif;
+  --font-small:calc(var(--font-content) * 0.75);
+  --font-xsmall:calc(var(--font-content) * 0.64);
 }
 [data-theme="light"] {
   --bg:#f5f4f0; --bg2:#ffffff; --bg3:#ebebeb;
@@ -123,7 +125,7 @@ textarea::placeholder{color:var(--text4)}
 .entry:hover{border-color:var(--border2)}
 .entry-header{display:flex;align-items:center;gap:9px;padding:10px 14px 7px}
 .entry-tag{font-size:10px;font-family:monospace;padding:2px 6px;border-radius:20px}
-.entry-date{font-size:10px;color:var(--text4);font-family:monospace;margin-left:auto}
+.entry-date{font-size:var(--font-small);color:var(--text4);font-family:monospace;margin-left:auto}
 .entry-delete{background:none;border:none;color:var(--border2);cursor:pointer;font-size:14px;transition:color .15s}
 .entry-delete:hover{color:var(--red)}
 .entry-body{padding:0 14px 10px;display:flex;gap:10px}
@@ -151,9 +153,9 @@ textarea::placeholder{color:var(--text4)}
 .cal-day.has-mixed{border-left:3px solid var(--amber)}
 .cal-day.has-journal{border-left:3px solid var(--text4)}
 .cal-day.selected{background:var(--bg3);border-color:var(--border2)}
-.cal-day-num{font-size:10px;font-family:monospace;color:var(--text4);margin-bottom:2px}
+.cal-day-num{font-size:var(--font-xsmall);font-family:monospace;color:var(--text4);margin-bottom:2px}
 .cal-day.today .cal-day-num{color:var(--teal)}
-.cal-pnl{font-size:9px;font-family:monospace}
+.cal-pnl{font-size:var(--font-xsmall);font-family:monospace}
 .cal-pnl.pos{color:var(--green)}.cal-pnl.neg{color:var(--red)}
 .cal-dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:2px}
 .cal-dot{width:4px;height:4px;border-radius:50%}
@@ -307,8 +309,8 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   /* Calendar */
   #page-calendar { padding:14px 12px; }
   .cal-day { min-height:44px; padding:3px; }
-  .cal-day-num { font-size:9px; }
-  .cal-pnl { font-size:8px; }
+  .cal-day-num { font-size:var(--font-xsmall); }
+  .cal-pnl { font-size:var(--font-xsmall); }
 
   /* Patterns */
   #page-patterns { padding:14px 12px; }
@@ -1601,8 +1603,8 @@ function renderFeed(){
       <div class="entry-header" onclick="toggleExpand(${e.id})">
         <span style="font-size:13px">${e.mode==="trading"?"📈":"📓"}</span>
         <span class="entry-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span>
-        ${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker} ${e.trade.direction}</span>`:""}
-        ${pnlStr?`<span style="font-size:10px;font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
+        ${e.trade?.ticker?`<span style="font-size:var(--font-small);font-family:monospace;color:var(--text4)">${e.trade.ticker} ${e.trade.direction}</span>`:""}
+        ${pnlStr?`<span style="font-size:var(--font-small);font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
         ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
         ${e.grade?`<span style="font-size:10px;font-family:monospace;font-weight:bold;color:${GRADE_COLOR[e.grade]};background:${GRADE_COLOR[e.grade]}22;border:1px solid ${GRADE_COLOR[e.grade]}44;padding:1px 6px;border-radius:10px">${e.grade}</span>`:""}
         ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}
