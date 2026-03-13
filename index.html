@@ -531,7 +531,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
         </div>
       </div>
       <div class="status-bar" id="status-bar"><div class="dot" id="status-dot"></div><span class="status-text" id="status-text"></span></div>
-      <div id="img-zone" class="img-zone" onclick="triggerImgUpload()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleImgDrop(event)">📎 Attach Chart or Image (Click or Drag)</div>
+      <div id="img-zone" class="img-zone" onclick="triggerImgUpload()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleImgDrop(event)">📎 Attach Chart or Image (Click, Drag, or Paste)</div>
       <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImgFile(this.files[0])"/>
       <textarea id="note-input" rows="10" placeholder="Describe your trade, thoughts, or anything else..."></textarea>
       <!-- Time-sensitive toggle (journal mode only) -->
@@ -1384,11 +1384,25 @@ function calcPnl(){
 // ── Image ──────────────────────────────────────────────────────────────────
 function triggerImgUpload(){if(!currentImage)document.getElementById("img-input").click();}
 function handleImgDrop(e){e.preventDefault();document.getElementById("img-zone").classList.remove("drag");const f=e.dataTransfer.files[0];if(f&&f.type.startsWith("image/"))handleImgFile(f);}
-function handleImgFile(file){if(!file)return;const r=new FileReader();r.onload=ev=>{compressImage(ev.target.result,1200,0.75,compressed=>{currentImage={dataUrl:compressed,name:file.name};renderImgZone();updateSaveBtn();});};r.readAsDataURL(file);}
+function handleImgFile(file){if(!file)return;const r=new FileReader();r.onload=ev=>{compressImage(ev.target.result,1200,0.75,compressed=>{currentImage={dataUrl:compressed,name:file.name||"pasted-image.png"};renderImgZone();updateSaveBtn();});};r.readAsDataURL(file);}
+function handleImgPaste(e){
+  const items=e.clipboardData?.items;if(!items)return;
+  for(const item of items){
+    if(item.type.startsWith("image/")){
+      e.preventDefault();
+      const blob=item.getAsFile();if(!blob)return;
+      handleImgFile(blob);
+      // Flash the img-zone to confirm paste was received
+      const z=document.getElementById("img-zone");
+      if(z){z.style.borderColor="var(--teal)";z.style.background="color-mix(in srgb,var(--teal) 8%,transparent)";setTimeout(()=>{z.style.borderColor="";z.style.background="";},600);}
+      break;
+    }
+  }
+}
 function renderImgZone(){
   const z=document.getElementById("img-zone");
   if(currentImage){z.className="img-zone has-img";z.innerHTML=`<img src="${currentImage.dataUrl}" alt="attached" style="cursor:zoom-in" title="Click to open chart focus view" onclick="event.stopPropagation();openChartFocus()"/><div class="img-actions"><span class="img-label">&#128206; ${currentImage.name}</span><button style="color:var(--teal)" onclick="event.stopPropagation();openChartFocus()">&#128269; Write &amp; View</button><button class="remove-img" onclick="event.stopPropagation();removeImage()">remove x</button></div>`;z.onclick=null;}
-  else{z.className="img-zone";z.innerHTML="&#128206; Attach Chart or Image (Click or Drag)";z.onclick=triggerImgUpload;}
+  else{z.className="img-zone";z.innerHTML="&#128206; Attach Chart or Image (Click, Drag, or Paste)";z.onclick=triggerImgUpload;}
 }
 function removeImage(){currentImage=null;renderImgZone();updateSaveBtn();}
 function openLightbox(src){document.getElementById("lightbox-img").src=src;document.getElementById("lightbox").classList.add("show");}
@@ -2944,6 +2958,11 @@ function initApp(){
     document.getElementById("filter-tag").appendChild(o);
   });
   document.getElementById("note-input").addEventListener("input",updateSaveBtn);
+  // Paste image from clipboard anywhere on the compose page
+  document.addEventListener("paste",e=>{
+    if(!document.getElementById("page-compose").classList.contains("active"))return;
+    handleImgPaste(e);
+  });
   selectTag("trading");
   setMode("trading");
     updateEntryCount();
