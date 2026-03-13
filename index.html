@@ -408,9 +408,9 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
         <!-- Account type -->
         <div style="display:flex;align-items:center;gap:7px;padding:7px 14px 0">
           <span style="font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px">ACCOUNT</span>
-          <button class="acct-btn active-live" id="acct-live" onclick="setAccount('live')">live</button>
-          <button class="acct-btn" id="acct-funded" onclick="setAccount('funded')">funded</button>
-          <button class="acct-btn" id="acct-eval" onclick="setAccount('eval')">eval</button>
+          <button class="acct-btn active-live" id="acct-live" onclick="setAccount('live')">Live</button>
+          <button class="acct-btn" id="acct-funded" onclick="setAccount('funded')">Funded</button>
+          <button class="acct-btn" id="acct-eval" onclick="setAccount('eval')">Eval</button>
         </div>
         <!-- Price / contracts row -->
         <div class="field-row" style="padding:8px 14px 10px;">
@@ -422,7 +422,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
         </div>
       </div>
       <div class="status-bar" id="status-bar"><div class="dot" id="status-dot"></div><span class="status-text" id="status-text"></span></div>
-      <div id="img-zone" class="img-zone" onclick="triggerImgUpload()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleImgDrop(event)">📎 attach chart or image (click or drag)</div>
+      <div id="img-zone" class="img-zone" onclick="triggerImgUpload()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleImgDrop(event)">📎 Attach Chart or Image (Click or Drag)</div>
       <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImgFile(this.files[0])"/>
       <textarea id="note-input" rows="5" placeholder="Describe your trade, thoughts, or anything else..."></textarea>
       <!-- Time-sensitive toggle (journal mode only) -->
@@ -939,7 +939,7 @@ function handleImgFile(file){if(!file)return;const r=new FileReader();r.onload=e
 function renderImgZone(){
   const z=document.getElementById("img-zone");
   if(currentImage){z.className="img-zone has-img";z.innerHTML=`<img src="${currentImage.dataUrl}" alt="attached"/><div class="img-actions"><span class="img-label">&#128206; ${currentImage.name}</span><button class="remove-img" onclick="event.stopPropagation();removeImage()">remove x</button></div>`;z.onclick=null;}
-  else{z.className="img-zone";z.innerHTML="&#128206; attach chart or image (click or drag)";z.onclick=triggerImgUpload;}
+  else{z.className="img-zone";z.innerHTML="&#128206; Attach Chart or Image (Click or Drag)";z.onclick=triggerImgUpload;}
 }
 function removeImage(){currentImage=null;renderImgZone();updateSaveBtn();}
 function openLightbox(src){document.getElementById("lightbox-img").src=src;document.getElementById("lightbox").classList.add("show");}
@@ -1265,7 +1265,7 @@ function openDetailPage(id){
   }
   if(e.image)html+=`<img class="detail-image" src="${e.image}" onclick="openLightbox('${e.image}')"/>`;
   if(e.text)html+=`<div class="detail-text ${!e.image&&!e.trade?.ticker?"no-border":""}">${esc(e.text)}</div>`;
-  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType}</span>`:""}<span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
+  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}<span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
   if(e.reminder){
     const rd=new Date(e.reminder);
     const rdStr=rd.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+" at "+rd.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
@@ -1302,7 +1302,7 @@ function renderMiniFeeed(){
   const el=document.getElementById("mini-feed");
   const recent=entries.slice(0,6);
   if(!recent.length){el.innerHTML='<div style="padding:10px 14px;font-size:11px;color:var(--text4);font-family:monospace">No entries yet</div>';return;}
-  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${TAG_LABELS[e.tag]||e.tag}</span>${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 4px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:10px;font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:10px;font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:11px;color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
+  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${TAG_LABELS[e.tag]||e.tag}</span>${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 4px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:10px;font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:10px;font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:11px;color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
   const trades=entries.filter(e=>e.trade?.pnl!=null);
   if(trades.length){const wins=trades.filter(e=>e.trade.pnl>0).length;document.getElementById("win-rate-small").textContent=Math.round(wins/trades.length*100)+"% win rate";}
 }
@@ -1327,7 +1327,7 @@ function renderFeed(){
         ${pnlStr?`<span style="font-size:10px;font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
         ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
         ${e.grade?`<span style="font-size:10px;font-family:monospace;font-weight:bold;color:${GRADE_COLOR[e.grade]};background:${GRADE_COLOR[e.grade]}22;border:1px solid ${GRADE_COLOR[e.grade]}44;padding:1px 6px;border-radius:10px">${e.grade}</span>`:""}
-        ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType}</span>`:""}
+        ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}
         <span class="entry-date">${fmtDate(e.ts)}</span>
         <button class="entry-delete" onclick="event.stopPropagation();deleteEntry(${e.id})">x</button>
       </div>
@@ -1343,7 +1343,18 @@ function renderFeed(){
   }).join("");
 }
 function toggleExpand(id){expandedIds.has(id)?expandedIds.delete(id):expandedIds.add(id);renderFeed();}
-function deleteEntry(id){entries=entries.filter(e=>e.id!==id);saveData(STORAGE_KEY,entries);fsDeleteEntry(id);updateEntryCount();renderFeed();renderMiniFeeed();}
+function deleteEntry(id){
+  entries=entries.filter(e=>e.id!==id);
+  saveData(STORAGE_KEY,entries);
+  fsDeleteEntry(id);
+  // Rescan all goals so deleted entry P&L is removed from progress
+  if(goals.length){
+    goals.forEach(g=>scanEntriesForGoal(g));
+    saveData(GOALS_KEY,goals);
+    fsSaveGoals(goals);
+  }
+  updateEntryCount();renderFeed();renderMiniFeeed();
+}
 function updateEntryCount(){document.getElementById("entry-count").textContent=`${entries.length} entr${entries.length!==1?"ies":"y"}`;}
 
 // ── Calendar ───────────────────────────────────────────────────────────────
@@ -1382,7 +1393,7 @@ function selectCalDay(d){
   const dayPnl=dayEntries.reduce((s,e)=>s+(e.trade?.pnl||0),0);
   const hasTrades=dayEntries.some(e=>e.trade?.pnl!=null);
   det.innerHTML=`<div class="cal-detail-header"><span>${MONTHS[calMonth]} ${d}, ${calYear}</span>${hasTrades?`<span style="font-family:monospace;font-size:13px;color:${dayPnl>=0?"var(--green)":"var(--red)"}">${dayPnl>=0?"+":""}$${dayPnl.toFixed(2)}</span>`:""}</div>`+
-    dayEntries.map(e=>`<div class="cal-entry-row" onclick="openDetailPage(${e.id})"><div style="width:7px;height:7px;border-radius:50%;background:${TAG_ACCENT[e.tag]};flex-shrink:0;margin-top:2px"></div><div class="cal-entry-text">${esc(e.text||"(image only)")}</div>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 5px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"};border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"}">${e.trade.accountType}</span>`:""} ${e.trade?.pnl!=null?`<span class="cal-entry-pnl" style="color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}</div>`).join("");
+    dayEntries.map(e=>`<div class="cal-entry-row" onclick="openDetailPage(${e.id})"><div style="width:7px;height:7px;border-radius:50%;background:${TAG_ACCENT[e.tag]};flex-shrink:0;margin-top:2px"></div><div class="cal-entry-text">${esc(e.text||"(image only)")}</div>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 5px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"};border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""} ${e.trade?.pnl!=null?`<span class="cal-entry-pnl" style="color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}</div>`).join("");
 }
 
 // ── Patterns ───────────────────────────────────────────────────────────────
