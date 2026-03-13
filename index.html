@@ -639,28 +639,9 @@ function _updateSyncUI(){
 function _fsSubscribe(){
   if(!_db||!_currentUser)return;
   const uid=_currentUser.uid;
-  let _firstEntrySnap=true;
   _fsUnsubEntries=_db.collection("users/"+uid+"/entries").orderBy("ts","desc")
     .onSnapshot(snap=>{
-      const remote=snap.docs.map(d=>d.data());
-      if(remote.length===0){
-        if(_firstEntrySnap&&localStorage.getItem(STORAGE_KEY)){
-          _firstEntrySnap=false;_fsUploadAllEntries();return;
-        }
-        _firstEntrySnap=false;
-        entries=[];
-        try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
-        updateEntryCount();renderMiniFeeed();
-        const ap=document.querySelector(".page.active");
-        if(ap){
-          if(ap.id==="page-feed")renderFeed();
-          else if(ap.id==="page-calendar")renderCalendar();
-          else if(ap.id==="page-patterns")renderPatterns();
-        }
-        return;
-      }
-      _firstEntrySnap=false;
-      entries=remote;
+      entries=snap.docs.map(d=>d.data());
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));}catch(e){}
       updateEntryCount();renderMiniFeeed();
       const ap=document.querySelector(".page.active");
@@ -670,23 +651,9 @@ function _fsSubscribe(){
         else if(ap.id==="page-patterns")renderPatterns();
       }
     },err=>console.warn("Firestore entries listener error:",err));
-  let _firstGoalSnap=true;
   _fsUnsubGoals=_db.collection("users/"+uid+"/goals")
     .onSnapshot(snap=>{
-      const remote=snap.docs.map(d=>d.data());
-      if(remote.length===0){
-        if(_firstGoalSnap&&localStorage.getItem(GOALS_KEY)){
-          _firstGoalSnap=false;_fsUploadAllGoals();return;
-        }
-        _firstGoalSnap=false;
-        goals=[];
-        try{localStorage.removeItem(GOALS_KEY);}catch(e){}
-        const ap=document.querySelector(".page.active");
-        if(ap?.id==="page-goals")renderGoals();
-        return;
-      }
-      _firstGoalSnap=false;
-      goals=remote;
+      goals=snap.docs.map(d=>d.data());
       try{localStorage.setItem(GOALS_KEY,JSON.stringify(goals));}catch(e){}
       const ap=document.querySelector(".page.active");
       if(ap?.id==="page-goals")renderGoals();
