@@ -1193,6 +1193,11 @@ function applyThemeMode(mode){
     }
   }
   _updateThemeUI(mode);
+  // Font color always wins — re-apply on top of whatever the theme set
+  if(_cp["fc"]?.hex){
+    const fc=_cp["fc"].hex;
+    ["--text","--text2","--text3","--text4"].forEach(v=>document.documentElement.style.setProperty(v,fc));
+  }
   saveSettings();
   if(document.getElementById("page-patterns")?.classList.contains("active"))renderPatterns();
 }
@@ -2838,23 +2843,16 @@ function resetAccentColor(){
 function applyFontColor(){
   const hex=_cp["fc"]?.hex;if(!hex)return;
   const root=document.documentElement;
-  const bright=hexLuminance(hex)>0.4; // is the picked color bright (light text)?
+  // Set all text levels to the same color so every word on screen matches
   root.style.setProperty("--text",hex);
-  if(bright){
-    // Light text — derive faded-down variants by darkening
-    root.style.setProperty("--text2",darkenHex(hex,0.18));
-    root.style.setProperty("--text3",darkenHex(hex,0.42));
-    root.style.setProperty("--text4",darkenHex(hex,0.62));
-  }else{
-    // Dark text — derive faded-up variants by lightening
-    root.style.setProperty("--text2",lightenHex(hex,0.18));
-    root.style.setProperty("--text3",lightenHex(hex,0.42));
-    root.style.setProperty("--text4",lightenHex(hex,0.62));
-  }
+  root.style.setProperty("--text2",hex);
+  root.style.setProperty("--text3",hex);
+  root.style.setProperty("--text4",hex);
   saveSettings();
 }
 function resetFontColor(){
   ["--text","--text2","--text3","--text4"].forEach(v=>document.documentElement.style.removeProperty(v));
+  if(_cp["fc"])_cp["fc"].hex=null;
   setCpSwatch("fc","#f0ede6");
   saveSettings();
 }
@@ -2869,7 +2867,7 @@ function saveSettings(){
       themeMode:_themeMode||"dark",
       bgColor:_cp["bg"]?.hex||null,
       acColor:_cp["ac"]?.hex||null,
-      fcColor:_cp["fc"]?.hex||null,
+      fcColor:(_cp["fc"]?.hex)||null,
     }));
   }catch(e){}
 }
