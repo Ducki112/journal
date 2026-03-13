@@ -1054,17 +1054,138 @@ function analyzeEntry(text,image,trade){
 function detectP(t){return{earlyExit:/sold too early|exit.*bounce|got out.*went up|left.*table|too early/.test(t),fearSell:/scared|afraid|fear|panic|couldn't hold|shook out|nervous/.test(t),revenge:/revenge|make it back|recoup|chasing|got back in/.test(t),oversize:/too big|oversize|too much|risked too much/.test(t),fomo:/fomo|missed|jumped in|chased|didn't want to miss/.test(t),goodDiscipline:/followed.*plan|stuck to|executed well|stayed calm|patient|clean execution|clean in/.test(t),winnerCut:/sold.*winner|took profit too early|could have held/.test(t),loserHeld:/held.*loss|didn't cut|averaged down|hope.*come back/.test(t),overtrading:/boredom|bored|just wanted to trade|without.*setup/.test(t),hesitation:/hesitat|waited too long|missed.*entry/.test(t)};}
 function buildResult(t,p,trade){
   const isTrade=trade?.ticker;
-  if(p.earlyExit||p.winnerCut)return{topic:"early exits / cutting winners",analysis:"You're cutting winners before their potential. Fear of giving back profits is overriding your original thesis.",tips:["Write your target before entering. Only exit early if the original reason is invalidated.","Use a trailing stop to let winners run.","Log what would have happened if you'd held to target."]};
-  if(p.fearSell)return{topic:"fear-based selling",analysis:"Fear is overriding your plan. Normal pullbacks get interpreted as threats, forcing premature exits.",tips:["Set your stop before entering — not during the trade.","Reduce size until dips don't trigger emotional reactions.","Journal the daily chart vs intraday after a fear exit."]};
-  if(p.fomo)return{topic:"FOMO entries",analysis:"FOMO entries happen after significant moves — you're entering with poor risk/reward.",tips:["Only enter if the setup meets your criteria.","Keep a missed trades log — most FOMO entries would have been losers.","Set price alerts at levels you'd actually buy."]};
-  if(p.revenge)return{topic:"revenge trading",analysis:"Trading to make back losses means emotion is fully driving decisions.",tips:["Take a 30-minute break after every loss before placing another trade.","Set a daily max loss limit. When hit, the day is done.","Each trade is independent."]};
-  if(p.loserHeld)return{topic:"holding losers",analysis:"Holding losing positions hoping for recovery turns manageable losses into large ones.",tips:["Ask: Would I buy this right now with no position? If no — exit.","Averaging down is doubling down on being wrong.","Pre-define your max loss before entry."]};
-  if(p.oversize)return{topic:"position sizing",analysis:"Oversizing turns a bad trade into a bad day.",tips:["Risk a fixed % per trade (0.5-2%).","If the trade makes you anxious, it's too big.","Your worst trades are almost always your biggest."]};
-  if(p.overtrading)return{topic:"overtrading / boredom",analysis:"Boredom is one of the most underrated causes of losses.",tips:["If you want to trade but don't have a setup, journal instead.","3 conditions must be true before entry.","Missing a day with no setups is a win."]};
-  if(p.hesitation)return{topic:"hesitation / confidence",analysis:"Hesitation after a loss causes emotional carryover to the next trade.",tips:["Journal after each loss to close it emotionally.","If the setup is valid, trust the process.","Track missed trades due to hesitation."]};
-  if(p.goodDiscipline)return{topic:"good execution",analysis:"You executed to plan — that's the real definition of a good trade.",tips:["Document exactly what you did well so you can repeat it.","Log this as a process win, separate from P&L.","Review best-executed trades monthly."]};
-  if(isTrade)return{topic:"trade review",analysis:"Consistent journaling is one of the highest-leverage habits a trader can build.",tips:["Rate each trade 1-5 on execution, separate from P&L.","Find your #1 recurring mistake and focus on fixing only that.","Review weekly, not just after losses."]};
-  return{topic:"journal entry",analysis:"Capturing thoughts consistently builds self-awareness.",tips:["Review notes weekly to spot recurring themes.","Add context when capturing.","Tag notes consistently."]};
+  const pnl=trade?.pnl;
+  const ticker=trade?.ticker||"";
+  // Count how many times this pattern appears in saved history (entry not yet saved when this runs)
+  const pHist=key=>entries.filter(e=>detectP((e.text||"").toLowerCase())[key]).length;
+  // Trend: is this pattern increasing or decreasing in last 14 days vs prior 14?
+  const pTrend=key=>{
+    const now=Date.now();
+    const r=entries.filter(e=>e.ts>now-14*DAY);
+    const b=entries.filter(e=>e.ts<=now-14*DAY&&e.ts>now-28*DAY);
+    if(r.length<3||b.length<3)return null;
+    const rr=r.filter(e=>detectP((e.text||"").toLowerCase())[key]).length/r.length;
+    const br=b.filter(e=>detectP((e.text||"").toLowerCase())[key]).length/b.length;
+    if(rr>br+0.1)return"worse";if(rr<br-0.1)return"better";return null;
+  };
+  const nth=n=>n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th";
+  const tStr=key=>{const tr=pTrend(key);if(tr==="better")return` <span style="color:var(--green)">↓ You've had fewer of these lately.</span>`;if(tr==="worse")return` <span style="color:var(--red)">↑ This is happening more often recently.</span>`;return"";};
+
+  if(p.earlyExit||p.winnerCut){
+    const n=pHist("earlyExit")+pHist("winnerCut");
+    const cStr=n>0?`This is the ${nth(n+1)} time you've cut a winner short. `:"";
+    return{topic:"early exits / cutting winners",
+      analysis:`${cStr}You exited while the setup was still valid — fear of giving back profits overrode your plan.${tStr("earlyExit")}`,
+      tips:[
+        "Write your exact target before entering. The only valid reason to exit early is if your original thesis breaks — not a pullback.",
+        n>=3?`After ${nth(n+1)} early exits, try journaling the specific emotion you feel at the moment you hit exit. Naming it weakens it.`:"Use a trailing stop to let the trade breathe without forcing a decision.",
+        "Keep a 'what would have happened' log. Seeing the missed profit in writing is the most effective deterrent."
+      ]};
+  }
+  if(p.fearSell){
+    const n=pHist("fearSell");
+    const tkStr=ticker?` ${ticker} trades seem particularly prone to this.`:"";
+    return{topic:"fear-based selling",
+      analysis:`${n>0?`Fear-based exits now appear ${nth(n+1)} times in your journal. `:""}Normal pullbacks are triggering exits — the threat is perceived, not real.${tkStr}${tStr("fearSell")}`,
+      tips:[
+        "Define your stop and thesis invalidation before entry — never make that decision during a pullback.",
+        n>=4?`${nth(n+1)} fear exits logged. The pattern is clear: reduce position size until a 1% drawdown feels like nothing.`:"Reduce size until dips stop feeling dangerous.",
+        "After each fear exit, note what happened next. Over time you'll recognize that most pullbacks are noise."
+      ]};
+  }
+  if(p.fomo){
+    const n=pHist("fomo");
+    const lStr=pnl!=null&&pnl<0?` You lost $${Math.abs(pnl).toFixed(0)} chasing this.`:"";
+    return{topic:"FOMO entries",
+      analysis:`${n>0?`FOMO entries have appeared ${nth(n+1)} times in your journal. `:""}You entered after the move was already made — risk/reward was inverted from the start.${lStr}${tStr("fomo")}`,
+      tips:[
+        "If you missed it, miss it. The next setup is worth more than a desperate late entry.",
+        n>=3?`After ${nth(n+1)} FOMO trades: try a '10 minute wait' rule — if a valid setup still exists after 10 minutes of watching, only then enter.`:"Keep a missed trades log — most FOMO entries would have been losers.",
+        "Set price alerts at the levels you'd actually want to buy, so you catch the setup — not the chase."
+      ]};
+  }
+  if(p.revenge){
+    const n=pHist("revenge");
+    return{topic:"revenge trading",
+      analysis:`${n>0?`Revenge trading appears ${nth(n+1)} times in your journal. `:""}Emotion is in full control — trades are being taken to recoup losses, not because of a setup.${tStr("revenge")}`,
+      tips:[
+        "After every loss, close the platform for 30 minutes. The urge to get back in fades quickly.",
+        n>=3?`${nth(n+1)} revenge trade entries. Set a hard daily max loss rule — when hit, the trading day is over. No exceptions.`:"Set a daily max loss limit before the session starts.",
+        "Each trade is completely independent. Yesterday's loss is gone — chasing it only compounds the damage."
+      ]};
+  }
+  if(p.loserHeld){
+    const n=pHist("loserHeld");
+    const lStr=pnl!=null&&pnl<0?` This position cost $${Math.abs(pnl).toFixed(0)}.`:"";
+    return{topic:"holding losers",
+      analysis:`${n>0?`This pattern appears ${nth(n+1)} times in your journal. `:""}Holding a loser and hoping turns a manageable loss into a large one.${lStr}${tStr("loserHeld")}`,
+      tips:[
+        "One question when in a losing trade: 'Would I enter right now with no position?' If no — exit immediately.",
+        n>=3?`You've done this ${nth(n+1)} times. Pre-define your max loss before entry and treat it as sacred — no averaging down, no exceptions.`:"Averaging down is doubling down on being wrong.",
+        "Write your max loss before you enter. When it hits, the trade is over regardless of hope."
+      ]};
+  }
+  if(p.oversize){
+    const n=pHist("oversize");
+    return{topic:"position sizing",
+      analysis:`${n>0?`Oversizing appears ${nth(n+1)} times in your journal. `:""}When size is too large, emotional management becomes impossible.${tStr("oversize")}`,
+      tips:[
+        "Risk a fixed % per trade — 0.5% to 1% of account. Write this number down before the session.",
+        n>=3?`After ${nth(n+1)} oversizing entries: cut your default size by 50% for the next 2 weeks. Your worst trades are almost always your biggest.`:"If watching the trade makes you anxious, the size is too large.",
+        "Reduce size until you can watch a 50% drawdown of your stop without emotion. That's the right size."
+      ]};
+  }
+  if(p.overtrading){
+    const n=pHist("overtrading");
+    return{topic:"overtrading / boredom",
+      analysis:`${n>0?`Boredom trading has appeared ${nth(n+1)} times in your journal. `:""}Voluntary losses from boredom are the most preventable losses in trading.${tStr("overtrading")}`,
+      tips:[
+        "No setup = no trade. Require 3 conditions to be simultaneously true before entering.",
+        n>=3?`After ${nth(n+1)} boredom trades: close the platform during 11:30am–1pm — most of these happen in midday chop.`:"If you want to trade but there's no setup, journal instead.",
+        "Missing a day with no valid setups is a winning day. Log it as one."
+      ]};
+  }
+  if(p.hesitation){
+    const n=pHist("hesitation");
+    return{topic:"hesitation / confidence",
+      analysis:`${n>0?`Hesitation appears ${nth(n+1)} times in your journal. `:""}Doubt after a valid signal causes missed trades and emotional carryover.${tStr("hesitation")}`,
+      tips:[
+        "Journal immediately after every loss — close it emotionally before the next session.",
+        n>=3?`After ${nth(n+1)} hesitation entries: try a 'process score' — rate your setup 1-10 before entering. Trusting your own scoring rebuilds confidence.`:"If the setup is valid, trust the process over sample size.",
+        "Track missed trades due to hesitation the same way you track losses. Both cost money."
+      ]};
+  }
+  if(p.goodDiscipline){
+    const n=entries.filter(e=>e.analysis?.topic==="good execution").length;
+    const pStr=pnl!=null?` (${pnl>=0?"+":""}$${pnl.toFixed(0)})`:"";
+    return{topic:"good execution",
+      analysis:`${n>0?`This is your ${nth(n+1)} good execution entry. `:""}You executed to plan${pStr} — that's the real definition of a good trade, regardless of P&L outcome.`,
+      tips:[
+        "Write down exactly what you did right — mindset, patience, entry criteria. Make this your template.",
+        n>=5?`${nth(n+1)} good execution entries. Review these monthly as a benchmark for what your best trading looks like.`:"Log this as a process win, entirely separate from P&L.",
+        n>=10?`You're building a real edge. Focus on increasing the ratio of good execution entries vs total trades.`:`Good execution #${n+1}. Keep stacking these — consistency is the goal.`
+      ]};
+  }
+  if(isTrade){
+    const tCount=entries.filter(e=>e.mode==="trading").length;
+    const tWins=entries.filter(e=>e.trade?.pnl!=null&&e.trade.pnl>0).length;
+    const tTotal=entries.filter(e=>e.trade?.pnl!=null).length;
+    const wr=tTotal>0?Math.round(tWins/tTotal*100):null;
+    return{topic:"trade review",
+      analysis:`${tCount>0?`You've now logged ${tCount+1} trades. `:""}${wr!=null?`Historical win rate: ${wr}% across ${tTotal} completed trades. `:""}Consistent journaling is one of the highest-leverage habits in trading.`,
+      tips:[
+        "Rate each trade 1-5 on execution quality, completely separate from P&L outcome.",
+        wr!=null&&wr<50?"Win rate under 50% — focus on cutting losers faster rather than finding more winners. RR improvement matters more than hit rate.":"Find your #1 recurring mistake and focus exclusively on reducing that one thing.",
+        "Review your last 10 trades weekly — not just after a bad day."
+      ]};
+  }
+  return{topic:"journal entry",
+    analysis:"Capturing thoughts and observations consistently is the foundation of self-awareness and behavioral change.",
+    tips:[
+      "Review your journal weekly — patterns invisible in the moment become obvious in review.",
+      "Add emotional context when writing: were you tired, frustrated, confident? Context makes entries actionable.",
+      "Tag consistently so you can filter and spot recurring patterns across time."
+    ]};
 }
 
 // ── Calendar ICS / Reminders ───────────────────────────────────────────────
@@ -1382,18 +1503,128 @@ function renderPatterns(){
       <div style="width:7px;height:7px;border-radius:50%;background:${c.count>0?(hasWarning&&c.count===Math.max(...counts.map(x=>x.count))?warnStroke:strokeCol):"var(--border2)"}"></div>
       ${c.label}${c.count>0?` · ${c.count}`:""}
     </div>`).join("");
+  // ── Behavioral AI insights — learned from entry patterns ─────────────────
   const sortedCounts=[...counts].sort((a,b)=>b.count-a.count);
-  const topM=sortedCounts[0];const goodT=filtered.filter(e=>e.analysis?.topic?.includes("good execution")).length;
-  const fearC=filtered.filter(e=>/(scared|afraid|fear|panic)/.test((e.text||"").toLowerCase())).length;
-  const lateE=filtered.filter(e=>e.ts>now-10*DAY);const lateG=lateE.filter(e=>e.analysis?.topic?.includes("good execution")).length;
-  const earlyG=filtered.filter(e=>e.ts<now-15*DAY&&e.analysis?.topic?.includes("good execution")).length;
-  document.getElementById("ai-insights").innerHTML=[
-    topM.count>0?`Your most frequent pattern is <strong style="color:var(--text)">"${topM.label}"</strong> — ${topM.count} times.`:"No single mistake dominates. Discipline is consistent.",
-    fearC>2?`Fear-based decisions appear in ${fearC} entries. Sizing may be too large.`:"Fear-based decisions are infrequent. Sizing and risk tolerance appear well-matched.",
-    `You've logged <strong style="color:var(--green)">${goodT} good execution trades</strong>. ${goodT>=5?"Strong foundation.":"Keep building."}`,
-    lateG>earlyG?`Recent entries show <strong style="color:var(--teal)">improved execution</strong>. Journaling is working.`:"Execution quality has been consistent.",
-    `Across ${trades.length} trades, expectancy is <strong style="color:${expectancy>=0?"var(--green)":"var(--red)"}">${expectancy>=0?"+":""}$${expectancy.toFixed(2)}/trade</strong>.`,
-  ].map(text=>`<div class="insight-item"><div class="insight-dot"></div><div class="insight-text">${text}</div></div>`).join("");
+  const topM=sortedCounts[0];
+  const goodT=filtered.filter(e=>e.analysis?.topic?.includes("good execution")).length;
+  const tradeList=filtered.filter(e=>e.mode==="trading"&&e.trade?.pnl!=null);
+  const tradeWins2=tradeList.filter(e=>e.trade.pnl>0);
+  const aiIns=[];
+  // Helper: count how many entries in an array match any of the keyword patterns
+  const pK=(arr,keys)=>arr.filter(e=>keys.some(k=>new RegExp(k).test((e.text||"").toLowerCase()))).length;
+
+  // 1. Top pattern with trend (improving or worsening?)
+  if(topM.count>0){
+    const patKeys=mt.find(m=>m.label===topM.label)?.keys||[];
+    const r14=filtered.filter(e=>e.ts>now-14*DAY);
+    const b14=filtered.filter(e=>e.ts<=now-14*DAY&&e.ts>now-28*DAY);
+    const rRate=r14.length>=2?pK(r14,patKeys)/r14.length:null;
+    const bRate=b14.length>=2?pK(b14,patKeys)/b14.length:null;
+    let patTrStr="";
+    if(rRate!=null&&bRate!=null){
+      if(rRate>bRate+0.1)patTrStr=` <span style="color:var(--red)">↑ increasing lately — focus here.</span>`;
+      else if(rRate<bRate-0.1)patTrStr=` <span style="color:var(--green)">↓ improving recently.</span>`;
+    }
+    aiIns.push(`Most frequent pattern: <strong style="color:var(--text)">"${topM.label}"</strong> — ${topM.count} time${topM.count!==1?"s":""} logged.${patTrStr}`);
+  } else {
+    aiIns.push(`No single pattern dominates. Discipline has been consistent across these entries.`);
+  }
+
+  // 2. Best / worst instrument (requires ≥3 trades each)
+  const iMap={};
+  tradeList.forEach(e=>{const k=e.trade.ticker||"?";if(!iMap[k])iMap[k]={pnl:0,wins:0,n:0};iMap[k].pnl+=e.trade.pnl;if(e.trade.pnl>0)iMap[k].wins++;iMap[k].n++;});
+  const iKeys=Object.keys(iMap).filter(k=>iMap[k].n>=3);
+  if(iKeys.length>=2){
+    iKeys.sort((a,b)=>iMap[b].pnl-iMap[a].pnl);
+    const bst=iKeys[0],wst=iKeys[iKeys.length-1];
+    if(iMap[bst].pnl>0)aiIns.push(`Best instrument: <strong style="color:var(--green)">${bst}</strong> — ${Math.round(iMap[bst].wins/iMap[bst].n*100)}% win rate, +$${iMap[bst].pnl.toFixed(0)} across ${iMap[bst].n} trades.`);
+    if(iMap[wst].pnl<0&&wst!==bst)aiIns.push(`Weakest instrument: <strong style="color:var(--red)">${wst}</strong> — ${Math.round(iMap[wst].wins/iMap[wst].n*100)}% win rate, $${iMap[wst].pnl.toFixed(0)} P&L. Review your ${wst} setups.`);
+  } else if(iKeys.length===1){
+    const k=iKeys[0];
+    aiIns.push(`Your primary instrument <strong>${k}</strong>: ${Math.round(iMap[k].wins/iMap[k].n*100)}% win rate across ${iMap[k].n} logged trades.`);
+  }
+
+  // 3. Emotional state vs win rate correlation
+  const emotRx=/(scared|afraid|fear|panic|frustrated|angry|emotional|revenge|stressed|anxious)/;
+  const emotT=tradeList.filter(e=>emotRx.test((e.text||"").toLowerCase()));
+  const calmT=tradeList.filter(e=>!emotRx.test((e.text||"").toLowerCase()));
+  if(emotT.length>=3&&calmT.length>=3){
+    const eWR=emotT.filter(e=>e.trade.pnl>0).length/emotT.length;
+    const cWR=calmT.filter(e=>e.trade.pnl>0).length/calmT.length;
+    const gap=Math.round((cWR-eWR)*100);
+    if(gap>=8)aiIns.push(`Emotional state impact: <strong style="color:var(--green)">${Math.round(cWR*100)}%</strong> win rate when calm vs <strong style="color:var(--red)">${Math.round(eWR*100)}%</strong> when emotional — a ${gap}% gap. Protect your mental state before trading.`);
+    else if(gap>=-5&&gap<8)aiIns.push(`Emotional state has minimal measurable impact on your win rate right now — ${Math.round(cWR*100)}% calm vs ${Math.round(eWR*100)}% emotional across logged trades.`);
+  }
+
+  // 4. Day-of-week win rate patterns
+  const dayWR={};const dayN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  tradeList.forEach(e=>{const d=new Date(e.ts).getDay();if(!dayWR[d])dayWR[d]={w:0,n:0};if(e.trade.pnl>0)dayWR[d].w++;dayWR[d].n++;});
+  const dStats=[1,2,3,4,5].filter(d=>dayWR[d]&&dayWR[d].n>=3).map(d=>({d,wr:dayWR[d].w/dayWR[d].n,n:dayWR[d].n}));
+  if(dStats.length>=2){
+    dStats.sort((a,b)=>b.wr-a.wr);
+    const bd=dStats[0],wd=dStats[dStats.length-1];
+    if(bd.wr-wd.wr>=0.2)aiIns.push(`Best trading day: <strong style="color:var(--green)">${dayN[bd.d]}</strong> (${Math.round(bd.wr*100)}% win rate, ${bd.n} trades). Weakest: <strong style="color:var(--red)">${dayN[wd.d]}</strong> (${Math.round(wd.wr*100)}%). Consider reducing size on ${dayN[wd.d]}.`);
+  }
+
+  // 5. Recovery rate after a loss vs overall win rate
+  const sTrades=[...tradeList].sort((a,b)=>a.ts-b.ts);
+  const aLoss=[];for(let i=1;i<sTrades.length;i++){if(sTrades[i-1].trade.pnl<0)aLoss.push(sTrades[i].trade.pnl>0?1:0);}
+  if(aLoss.length>=4){
+    const rr=aLoss.reduce((s,v)=>s+v,0)/aLoss.length;
+    const ow=tradeList.length?tradeWins2.length/tradeList.length:0;
+    if(rr<ow-0.15)aiIns.push(`After a loss, your next trade wins only <strong style="color:var(--red)">${Math.round(rr*100)}%</strong> vs ${Math.round(ow*100)}% overall. Emotional trading after losses is likely — slow down after red trades.`);
+    else if(rr>ow+0.1)aiIns.push(`You recover well after losses — <strong style="color:var(--green)">${Math.round(rr*100)}%</strong> win rate on the trade immediately following a loss.`);
+  }
+
+  // 6. Current win/loss streak
+  const lTrades=[...tradeList].sort((a,b)=>b.ts-a.ts);
+  if(lTrades.length>=1){
+    const sType=lTrades[0].trade.pnl>0?"win":"loss";let sLen=0;
+    for(const e of lTrades){if((sType==="win"&&e.trade.pnl>0)||(sType==="loss"&&e.trade.pnl<0))sLen++;else break;}
+    if(sLen>=3){
+      if(sType==="win")aiIns.push(`Currently on a <strong style="color:var(--green)">${sLen}-trade win streak</strong>. Stay disciplined — this is when overconfidence tends to creep in.`);
+      else aiIns.push(`Currently on a <strong style="color:var(--red)">${sLen}-trade loss streak</strong>. Consider reducing size or sitting out a session to reset mentally.`);
+    }
+  }
+
+  // 7. Win rate trend: last 14 days vs prior 14 days
+  const r14t=tradeList.filter(e=>e.ts>now-14*DAY);
+  const p14t=tradeList.filter(e=>e.ts<=now-14*DAY&&e.ts>now-28*DAY);
+  if(r14t.length>=3&&p14t.length>=3){
+    const rWR=r14t.filter(e=>e.trade.pnl>0).length/r14t.length;
+    const pWR=p14t.filter(e=>e.trade.pnl>0).length/p14t.length;
+    const diff=Math.round((rWR-pWR)*100);
+    if(diff>=10)aiIns.push(`Win rate up <strong style="color:var(--green)">+${diff}%</strong> over the last 14 days vs the prior 14. The journaling is working.`);
+    else if(diff<=-10)aiIns.push(`Win rate down <strong style="color:var(--red)">${diff}%</strong> over the last 14 days vs the prior 14. Review recent entries for emerging patterns.`);
+  }
+
+  // 8. Trade grade trend
+  const GVAL3={"F":0,"D":1,"C":2,"B":3,"A":4,"A+":5};
+  const rGrd=filtered.filter(e=>e.grade&&GVAL3[e.grade]!=null&&e.ts>now-14*DAY);
+  const oGrd=filtered.filter(e=>e.grade&&GVAL3[e.grade]!=null&&e.ts<=now-14*DAY);
+  if(rGrd.length>=2&&oGrd.length>=2){
+    const rAvg=rGrd.reduce((s,e)=>s+(GVAL3[e.grade]||0),0)/rGrd.length;
+    const oAvg=oGrd.reduce((s,e)=>s+(GVAL3[e.grade]||0),0)/oGrd.length;
+    if(rAvg>oAvg+0.5)aiIns.push(`Trade grades are trending up — your execution quality has improved over the last 2 weeks.`);
+    else if(oAvg>rAvg+0.5)aiIns.push(`Trade grades have dipped recently compared to your historical average. Review your pre-trade checklist.`);
+  }
+
+  // 9. Good execution trend
+  const rGood=filtered.filter(e=>e.ts>now-14*DAY&&e.analysis?.topic?.includes("good execution")).length;
+  const oGood=filtered.filter(e=>e.ts<=now-14*DAY&&e.analysis?.topic?.includes("good execution")).length;
+  if(goodT>0){
+    const trendGood=rGood>0&&oGood>0?(rGood/(r14t.length||1)>(oGood/Math.max(filtered.filter(e=>e.ts<=now-14*DAY).length,1))?" — execution trending upward lately.":"."):"." ;
+    aiIns.push(`<strong style="color:var(--green)">${goodT}</strong> good execution ${goodT===1?"trade":"trades"} logged${goodT>=10?" — strong, consistent foundation.":goodT>=5?" — solid foundation building.":trendGood}`);
+  }
+
+  // 10. Expectancy summary (always show if enough data)
+  if(tradeList.length>=3){
+    const wrPct=Math.round(tradeWins2.length/tradeList.length*100);
+    aiIns.push(`Across <strong>${tradeList.length}</strong> trades: <strong style="color:${expectancy>=0?"var(--green)":"var(--red)"}">${expectancy>=0?"+":""}$${expectancy.toFixed(2)}/trade</strong> expectancy, ${wrPct}% win rate.`);
+  }
+
+  if(aiIns.length===0)aiIns.push("Log more trades and journal entries to unlock behavioral insights.");
+  document.getElementById("ai-insights").innerHTML=aiIns.map(text=>`<div class="insight-item"><div class="insight-dot"></div><div class="insight-text">${text}</div></div>`).join("");
 }
 
 // ── Goals ──────────────────────────────────────────────────────────────────
