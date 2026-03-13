@@ -500,19 +500,23 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   </div>
 </div>
 
-<!-- PRE-TRADE CHECKLIST -->
+<!-- POST-TRADE CHECKLIST -->
 <div class="checklist-overlay" id="checklist-overlay">
   <div class="checklist-modal">
-    <h2>Pre-Trade Checklist</h2>
-    <p class="checklist-sub">Confirm all 6 items before this trade is logged.</p>
+    <h2>Post-Trade Checklist</h2>
+    <p class="checklist-sub">Check everything that applied to this trade. Your grade is calculated automatically.</p>
     <div id="checklist-items"></div>
     <div class="cl-progress">
       <div class="cl-progress-bg"><div class="cl-progress-fill" id="cl-progress-fill" style="width:0%"></div></div>
-      <div class="cl-progress-text" id="cl-progress-text">0 / 6 complete</div>
+      <div class="cl-progress-text" id="cl-progress-text">0 / 6</div>
+    </div>
+    <div style="text-align:center;margin:14px 0 4px">
+      <span id="cl-grade-display" style="font-size:36px;font-family:monospace;font-weight:bold;color:var(--text4)">F</span>
+      <span style="font-size:11px;font-family:monospace;color:var(--text4);display:block;margin-top:2px" id="cl-grade-label">trade grade</span>
     </div>
     <div class="checklist-btns">
       <button class="checklist-btn secondary" onclick="closeChecklist()">cancel</button>
-      <button class="checklist-btn primary" id="cl-confirm-btn" onclick="confirmChecklist()" disabled>save + analyze ✦</button>
+      <button class="checklist-btn primary" id="cl-confirm-btn" onclick="confirmChecklist()">save + analyze ✦</button>
     </div>
   </div>
 </div>
@@ -563,13 +567,16 @@ const DAY=86400000,NOW=Date.now();
 const STORAGE_KEY="journal_v4",GOALS_KEY="journal_goals_v4",THEME_KEY="journal_theme";
 const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const CHECKLIST=[
-  {id:"setup",label:"I have a clear setup with a defined entry trigger"},
-  {id:"stop",label:"My stop loss level is set before I enter"},
-  {id:"target",label:"I know my profit target — it gives at least 2:1 R/R"},
-  {id:"size",label:"My position size risks no more than 2% of my account"},
-  {id:"reason",label:"I can explain why I'm taking this trade in one sentence"},
-  {id:"emotion",label:"I'm not trading out of boredom, fear, or to make back a loss"},
+  {id:"setup",label:"My setup was clear and concise"},
+  {id:"rr",label:"My RR was reasonable and valid"},
+  {id:"emotion",label:"I didn't take this trade out of boredom, fear, or to make back a loss (revenge trade)"},
+  {id:"reason",label:"I can explain why I took this trade in one sentence"},
+  {id:"size",label:"I did not oversize"},
+  {id:"confidence",label:"I felt confident in this trade"},
 ];
+const GRADE_MAP=["F","F","D","C","B","A","A+"];
+const GRADE_COLOR={"A+":"#00d4aa","A":"#27ae60","B":"#f39c12","C":"#e67e22","D":"#e74c3c","F":"#888"};
+let _pendingGrade=null;
 const FUTURES_PV={NQ:20,ES:50,YM:5,RTY:50,CL:1000,GC:100,SI:5000,MNQ:2,MES:5,MYM:0.5,M2K:5,MCL:100,MGC:10};
 const FUTURES_TICK={NQ:0.25,ES:0.25,YM:1,RTY:0.1,CL:0.01,GC:0.1,SI:0.005,MNQ:0.25,MES:0.25,MYM:1,M2K:0.1,MCL:0.01,MGC:0.1};
 
@@ -966,17 +973,26 @@ function closeChecklist(){document.getElementById("checklist-overlay").classList
 function renderChecklistItems(){
   const done=Object.values(checklistState).filter(Boolean).length;
   const total=CHECKLIST.length;
+  const grade=GRADE_MAP[done];
+  const color=GRADE_COLOR[grade];
   document.getElementById("checklist-items").innerHTML=CHECKLIST.map(c=>`
     <div class="check-item" onclick="toggleCheck('${c.id}')">
       <div class="check-box ${checklistState[c.id]?"checked":""}">${checklistState[c.id]?"&#10003;":""}</div>
       <span class="check-label">${c.label}</span>
     </div>`).join("");
   document.getElementById("cl-progress-fill").style.width=`${done/total*100}%`;
-  document.getElementById("cl-progress-text").textContent=`${done} / ${total} complete`;
-  document.getElementById("cl-confirm-btn").disabled=done<total;
+  document.getElementById("cl-progress-text").textContent=`${done} / ${total}`;
+  const gradeEl=document.getElementById("cl-grade-display");
+  if(gradeEl){gradeEl.textContent=grade;gradeEl.style.color=color;}
+  const labelEl=document.getElementById("cl-grade-label");
+  if(labelEl){const labels={"A+":"elite execution","A":"strong trade","B":"solid trade","C":"average trade","D":"poor discipline","F":"no plan followed"};labelEl.textContent=labels[grade]||"trade grade";}
 }
 function toggleCheck(id){checklistState[id]=!checklistState[id];renderChecklistItems();}
-function confirmChecklist(){closeChecklist();doSave();}
+function confirmChecklist(){
+  const done=Object.values(checklistState).filter(Boolean).length;
+  _pendingGrade=GRADE_MAP[done];
+  closeChecklist();doSave();
+}
 
 function doSave(){
   const text=document.getElementById("note-input").value.trim();
@@ -1003,7 +1019,7 @@ function doSave(){
   setStatus("thinking","Analyzing...");
   setTimeout(()=>{
     const analysis=analyzeEntry(text,currentImage,tradeData);
-    const entry={id:Date.now(),mode:currentMode,tag:selectedTag,text:text||"",image:currentImage?currentImage.dataUrl:null,trade:tradeData,analysis,ts:Date.now(),reminder:reminderDt||null};
+    const entry={id:Date.now(),mode:currentMode,tag:selectedTag,text:text||"",image:currentImage?currentImage.dataUrl:null,trade:tradeData,analysis,ts:Date.now(),reminder:reminderDt||null,grade:_pendingGrade||null};_pendingGrade=null;
     entries.unshift(entry);saveData(STORAGE_KEY,entries);fsAddEntry(entry);
     // Check new entry against custom goals
     checkNewEntryAgainstGoals(entry);
@@ -1166,6 +1182,7 @@ function renderFeed(){
         ${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker} ${e.trade.direction}</span>`:""}
         ${pnlStr?`<span style="font-size:10px;font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
         ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
+        ${e.grade?`<span style="font-size:10px;font-family:monospace;font-weight:bold;color:${GRADE_COLOR[e.grade]};background:${GRADE_COLOR[e.grade]}22;border:1px solid ${GRADE_COLOR[e.grade]}44;padding:1px 6px;border-radius:10px">${e.grade}</span>`:""}
         <span class="entry-date">${fmtDate(e.ts)}</span>
         <button class="entry-delete" onclick="event.stopPropagation();deleteEntry(${e.id})">x</button>
       </div>
