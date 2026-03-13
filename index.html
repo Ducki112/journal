@@ -337,6 +337,30 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 .inst-badge{display:inline-block;font-size:9px;font-family:monospace;padding:1px 5px;border-radius:10px;background:color-mix(in srgb,var(--teal) 15%,transparent);color:var(--teal);border:1px solid color-mix(in srgb,var(--teal) 25%,transparent);margin-left:4px;}
 .inst-badge.futures{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);border-color:color-mix(in srgb,var(--amber) 25%,transparent);}
 .acct-btn{padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s}
+.wr-overlay{display:none;position:fixed;inset:0;background:#000000bb;z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;pointer-events:none}
+.wr-overlay.show{display:flex;pointer-events:all}
+.wr-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;width:100%;max-width:620px;overflow:hidden;margin:auto}
+.wr-header{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.wr-title{font-size:16px;font-weight:400}
+.wr-subtitle{font-size:11px;font-family:monospace;color:var(--text4);margin-top:3px}
+.wr-close{background:none;border:none;color:var(--text4);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0}
+.wr-close:hover{color:var(--text)}
+.wr-stats{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.wr-stat{flex:1;padding:10px 14px;border-right:1px solid var(--border);text-align:center}
+.wr-stat:last-child{border-right:none}
+.wr-stat-val{font-size:18px;font-family:monospace;margin-bottom:2px}
+.wr-stat-label{font-size:9px;font-family:monospace;color:var(--text4);letter-spacing:.5px}
+.wr-body{padding:20px 22px}
+.wr-q{margin-bottom:18px}
+.wr-q-label{font-size:10px;font-family:monospace;color:var(--teal);letter-spacing:.5px;margin-bottom:5px}
+.wr-q-prompt{font-size:12px;line-height:1.65;color:var(--text2);margin-bottom:8px}
+.wr-q textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:9px 11px;color:var(--text);font-size:13px;font-family:Georgia,serif;resize:vertical;outline:none;min-height:72px;line-height:1.6}
+.wr-q textarea:focus{border-color:var(--border2)}
+.wr-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.wr-save-btn{background:var(--text);color:var(--bg);border:none;border-radius:4px;padding:8px 18px;font-size:11px;font-family:monospace;cursor:pointer;transition:all .15s}
+.wr-save-btn:hover{opacity:.85}
+.wr-cancel-btn{background:var(--bg3);color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:8px 14px;font-size:11px;font-family:monospace;cursor:pointer}
+.wr-empty{padding:30px 22px;text-align:center;font-size:12px;font-family:monospace;color:var(--text4)}
 .acct-btn.active-live{border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
 .acct-btn.active-funded{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent);color:var(--teal)}
 .acct-btn.active-eval{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber)}
@@ -483,7 +507,10 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 <!-- PATTERNS -->
 <div class="page full" id="page-patterns">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-    <span style="font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px">PATTERNS &amp; ANALYSIS</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px">PATTERNS &amp; ANALYSIS</span>
+      <button onclick="openWeeklyReview()" style="font-size:10px;font-family:monospace;color:var(--teal);background:color-mix(in srgb,var(--teal) 8%,transparent);border:1px solid color-mix(in srgb,var(--teal) 25%,transparent);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .15s">✦ Weekly Review</button>
+    </div>
     <select id="patterns-date-range" onchange="renderPatterns()" style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 9px;font-size:11px;font-family:monospace;color:var(--text);outline:none;cursor:pointer">
       <option value="all">All time</option>
       <option value="7">Last 7 days</option>
@@ -573,6 +600,22 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeGoalModal()">cancel</button>
       <button class="modal-btn primary" onclick="addGoal()">create goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEEKLY REVIEW -->
+<div class="wr-overlay" id="wr-overlay">
+  <div class="wr-modal">
+    <div class="wr-header">
+      <div><div class="wr-title">Weekly Review</div><div class="wr-subtitle" id="wr-subtitle"></div></div>
+      <button class="wr-close" onclick="closeWeeklyReview()">×</button>
+    </div>
+    <div class="wr-stats" id="wr-stats"></div>
+    <div id="wr-body"></div>
+    <div class="wr-footer">
+      <button class="wr-cancel-btn" onclick="closeWeeklyReview()">Close</button>
+      <button class="wr-save-btn" id="wr-save-btn" onclick="saveWeeklyReview()">Save as Journal Entry ✦</button>
     </div>
   </div>
 </div>
@@ -1898,6 +1941,131 @@ function renderGoals(){
   });
   cards.push(`<div class="add-goal-card" onclick="openGoalModal()">+ Add goal</div>`);
   grid.innerHTML=cards.join("");
+}
+
+// ── Weekly Review ──────────────────────────────────────────────────────────
+function openWeeklyReview(){
+  const now=Date.now();
+  const weekStart=now-7*DAY;
+  const weekEntries=entries.filter(e=>e.ts>=weekStart);
+  const trades=weekEntries.filter(e=>e.mode==="trading"&&e.trade?.pnl!=null);
+  const wins=trades.filter(e=>e.trade.pnl>0);
+  const losses=trades.filter(e=>e.trade.pnl<0);
+  const totalPnl=trades.reduce((s,e)=>s+e.trade.pnl,0);
+  const winRate=trades.length?Math.round(wins.length/trades.length*100):null;
+
+  // Date range label
+  const fmt=ts=>new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  document.getElementById("wr-subtitle").textContent=`${fmt(weekStart)} — ${fmt(now)}`;
+
+  // Stats bar
+  const pnlColor=totalPnl>=0?"var(--green)":"var(--red)";
+  document.getElementById("wr-stats").innerHTML=[
+    {label:"ENTRIES",val:weekEntries.length,color:"var(--text)"},
+    {label:"TRADES",val:trades.length,color:"var(--text)"},
+    {label:"WIN RATE",val:winRate!=null?winRate+"%":"—",color:winRate!=null?(winRate>=50?"var(--green)":"var(--red)"):"var(--text4)"},
+    {label:"WEEK P&L",val:trades.length?(totalPnl>=0?"+":"")+"$"+totalPnl.toFixed(0):"—",color:trades.length?pnlColor:"var(--text4)"},
+  ].map(s=>`<div class="wr-stat"><div class="wr-stat-val" style="color:${s.color}">${s.val}</div><div class="wr-stat-label">${s.label}</div></div>`).join("");
+
+  // Generate questions
+  const questions=_buildWeeklyQuestions(weekEntries,trades,wins,losses,totalPnl,winRate,now,weekStart);
+
+  if(!questions.length&&!weekEntries.length){
+    document.getElementById("wr-body").innerHTML=`<div class="wr-empty">No entries logged this week. Start journaling your trades and a personalized review will appear here.</div>`;
+    document.getElementById("wr-save-btn").style.display="none";
+  } else {
+    document.getElementById("wr-save-btn").style.display="";
+    document.getElementById("wr-body").innerHTML=`<div class="wr-body">${questions.map((q,i)=>`
+      <div class="wr-q">
+        <div class="wr-q-label">QUESTION ${i+1} OF ${questions.length}</div>
+        <div class="wr-q-prompt">${q}</div>
+        <textarea id="wr-ans-${i}" placeholder="Your answer..."></textarea>
+      </div>`).join("")}</div>`;
+  }
+
+  document.getElementById("wr-overlay").classList.add("show");
+}
+
+function _buildWeeklyQuestions(weekEntries,trades,wins,losses,totalPnl,winRate,now,weekStart){
+  const qs=[];
+  const dp=t=>detectP((t.text||"").toLowerCase());
+  const fearC=weekEntries.filter(e=>dp(e).fearSell).length;
+  const fomoC=weekEntries.filter(e=>dp(e).fomo).length;
+  const revengeC=weekEntries.filter(e=>dp(e).revenge).length;
+  const earlyC=weekEntries.filter(e=>dp(e).earlyExit||dp(e).winnerCut).length;
+  const goodC=weekEntries.filter(e=>e.analysis?.topic==="good execution").length;
+  const oversizeC=weekEntries.filter(e=>dp(e).oversize).length;
+  const boredC=weekEntries.filter(e=>dp(e).overtrading).length;
+  const loserC=weekEntries.filter(e=>dp(e).loserHeld).length;
+
+  // Q1 — Overall week performance
+  if(trades.length>0){
+    if(winRate<40)qs.push(`Your win rate this week was <strong>${winRate}%</strong> across ${trades.length} trades (${totalPnl>=0?"+":""}$${totalPnl.toFixed(0)} P&L). What was the single biggest factor that held you back, and what is one concrete change you'll make next week?`);
+    else if(winRate>=60)qs.push(`Strong week — <strong>${winRate}%</strong> win rate across ${trades.length} trades (${totalPnl>=0?"+":""}$${totalPnl.toFixed(0)}). What specific habits or mindset carried this week, and how do you protect them going forward?`);
+    else qs.push(`You traded <strong>${trades.length} times</strong> this week with a ${winRate}% win rate and ${totalPnl>=0?"+":""}$${totalPnl.toFixed(0)} P&L. What was the defining theme of your trading this week — what pattern showed up the most?`);
+  } else {
+    qs.push(`You logged <strong>${weekEntries.length} journal ${weekEntries.length===1?"entry":"entries"}</strong> this week without logging any trades. What has been on your mind, and what are you preparing or watching for next week?`);
+  }
+
+  // Q2 — Biggest mistake pattern
+  const patternRanked=[
+    {label:"fear-based exit",count:fearC,q:`You logged <strong>${fearC} fear-based exit${fearC!==1?"s":""}</strong> this week. What specifically triggered the fear each time — position size, time of day, market conditions? What would staying in the trade have required?`},
+    {label:"FOMO entry",count:fomoC,q:`You chased <strong>${fomoC} trade${fomoC!==1?"s":""}</strong> out of FOMO this week. What did those moments feel like right before entry? What setup or confirmation would have made you wait?`},
+    {label:"revenge trade",count:revengeC,q:`You logged <strong>${revengeC} revenge trade${revengeC!==1?"s":""}</strong> this week. Walk through what happened in the moments before each one. What is the specific trigger that puts you into revenge mode?`},
+    {label:"early exit",count:earlyC,q:`You cut <strong>${earlyC} winner${earlyC!==1?"s":""}</strong> short this week. At the moment you exited, was the original setup still valid? What emotion or thought caused you to close early?`},
+    {label:"oversized position",count:oversizeC,q:`Position sizing was a problem <strong>${oversizeC} time${oversizeC!==1?"s":""}</strong> this week. What leads you to oversize — confidence, impatience, making up for losses? What is the specific size rule you'll enforce next week?`},
+    {label:"boredom trade",count:boredC,q:`You took <strong>${boredC} boredom trade${boredC!==1?"s":""}</strong> this week. What time of day do these happen? Write a specific alternative action you will take instead of trading when there is no setup.`},
+    {label:"held loser",count:loserC,q:`You held <strong>${loserC} losing position${loserC!==1?"s":""}</strong> too long this week hoping for a reversal. What was going through your mind? At what point did you know you should have exited but didn't?`},
+  ].filter(p=>p.count>0).sort((a,b)=>b.count-a.count);
+
+  if(patternRanked.length>0)qs.push(patternRanked[0].q);
+  if(patternRanked.length>1)qs.push(patternRanked[1].q);
+
+  // Q3 — Good execution
+  if(goodC>0){
+    qs.push(`You had <strong>${goodC} good execution trade${goodC!==1?"s":""}</strong> this week. What was your mental state and routine before those trades? Be specific — what can you replicate next week?`);
+  } else if(trades.length>0){
+    qs.push(`Looking back at this week's trades, was there even one where you followed your plan completely from entry to exit? If not, what kept getting in the way?`);
+  }
+
+  // Q4 — Compare to prior week
+  const prior=entries.filter(e=>e.ts>=now-14*DAY&&e.ts<weekStart);
+  const priorTrades=prior.filter(e=>e.mode==="trading"&&e.trade?.pnl!=null);
+  if(priorTrades.length>=3&&trades.length>=3){
+    const priorWR=Math.round(priorTrades.filter(e=>e.trade.pnl>0).length/priorTrades.length*100);
+    const priorPnl=priorTrades.reduce((s,e)=>s+e.trade.pnl,0);
+    if(winRate>priorWR+10)qs.push(`Your win rate improved from <strong>${priorWR}%</strong> last week to <strong style="color:var(--green)">${winRate}%</strong> this week. What changed? Be specific about what you did differently that you want to protect and carry forward.`);
+    else if(winRate<priorWR-10)qs.push(`Your win rate dropped from <strong>${priorWR}%</strong> last week to <strong style="color:var(--red)">${winRate}%</strong> this week. What shifted? Were there external factors, market conditions, or was it execution and discipline?`);
+  }
+
+  // Q5 — Commitment for next week (always last)
+  qs.push(`Write <strong>one specific, measurable rule</strong> you are committing to for next week. Not a goal — a rule. Something you can check yes or no on after every single trade.`);
+
+  return qs;
+}
+
+function closeWeeklyReview(){
+  document.getElementById("wr-overlay").classList.remove("show");
+}
+
+function saveWeeklyReview(){
+  const prompts=document.querySelectorAll("#wr-body .wr-q");
+  if(!prompts.length)return;
+  let text="WEEKLY REVIEW\n\n";
+  prompts.forEach((el,i)=>{
+    const prompt=el.querySelector(".wr-q-prompt")?.innerText||"";
+    const answer=document.getElementById("wr-ans-"+i)?.value.trim()||"";
+    if(answer)text+=`Q${i+1}: ${prompt}\n${answer}\n\n`;
+  });
+  if(text.trim()==="WEEKLY REVIEW")return;
+  const entry={id:Date.now(),mode:"journal",tag:"personal",text:text.trim(),image:null,trade:null,analysis:{topic:"weekly review",analysis:"End-of-week reflection logged.",tips:["Review this next week to track whether your commitments held.","Compare weekly reviews month over month to spot longer-term patterns.","One followed rule is worth more than ten unmet goals."]},ts:Date.now(),reminder:null,grade:null};
+  entries.unshift(entry);
+  saveData(STORAGE_KEY,entries);
+  fsAddEntry(entry);
+  updateEntryCount();
+  renderMiniFeeed();
+  closeWeeklyReview();
+  openDetailPage(entry.id);
 }
 
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
