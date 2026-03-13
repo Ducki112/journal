@@ -1573,6 +1573,7 @@ function deleteGoal(id){goals=goals.filter(g=>g.id!==id);saveData(GOALS_KEY,goal
 function renderGoals(){
   const grid=document.getElementById("goals-grid");
   if(!grid)return;
+  if(!Array.isArray(goals))goals=[];
   const cards=goals.map(g=>{
     const pct=g.target>0?Math.min(Math.round((g.current/g.target)*100),100):0;
     const hit=pct>=100,onTrack=pct>=50;
@@ -1603,9 +1604,6 @@ function renderGoals(){
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
   initFirebase();
-  // ONE-TIME DATA WIPE — will be removed after clean upload
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(GOALS_KEY);
   // Apply saved theme label
   try{const t=localStorage.getItem(THEME_KEY);if(t){document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}
   // Build tag buttons
