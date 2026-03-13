@@ -639,15 +639,17 @@ function _updateSyncUI(){
 function _fsSubscribe(){
   if(!_db||!_currentUser)return;
   const uid=_currentUser.uid;
+  let _firstEntrySnap=true;
   _fsUnsubEntries=_db.collection("users/"+uid+"/entries").orderBy("ts","desc")
     .onSnapshot(snap=>{
       const remote=snap.docs.map(d=>d.data());
-      if(remote.length===0&&localStorage.getItem(STORAGE_KEY)){
-        _fsUploadAllEntries();return;
-      }
-      if(remote.length>0){
-        entries=remote;
-        try{localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));}catch(e){}
+      if(remote.length===0){
+        if(_firstEntrySnap&&localStorage.getItem(STORAGE_KEY)){
+          _firstEntrySnap=false;_fsUploadAllEntries();return;
+        }
+        _firstEntrySnap=false;
+        entries=[];
+        try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
         updateEntryCount();renderMiniFeeed();
         const ap=document.querySelector(".page.active");
         if(ap){
@@ -655,20 +657,39 @@ function _fsSubscribe(){
           else if(ap.id==="page-calendar")renderCalendar();
           else if(ap.id==="page-patterns")renderPatterns();
         }
+        return;
+      }
+      _firstEntrySnap=false;
+      entries=remote;
+      try{localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));}catch(e){}
+      updateEntryCount();renderMiniFeeed();
+      const ap=document.querySelector(".page.active");
+      if(ap){
+        if(ap.id==="page-feed")renderFeed();
+        else if(ap.id==="page-calendar")renderCalendar();
+        else if(ap.id==="page-patterns")renderPatterns();
       }
     },err=>console.warn("Firestore entries listener error:",err));
+  let _firstGoalSnap=true;
   _fsUnsubGoals=_db.collection("users/"+uid+"/goals")
     .onSnapshot(snap=>{
       const remote=snap.docs.map(d=>d.data());
-      if(remote.length===0&&localStorage.getItem(GOALS_KEY)){
-        _fsUploadAllGoals();return;
-      }
-      if(remote.length>0){
-        goals=remote;
-        try{localStorage.setItem(GOALS_KEY,JSON.stringify(goals));}catch(e){}
+      if(remote.length===0){
+        if(_firstGoalSnap&&localStorage.getItem(GOALS_KEY)){
+          _firstGoalSnap=false;_fsUploadAllGoals();return;
+        }
+        _firstGoalSnap=false;
+        goals=[];
+        try{localStorage.removeItem(GOALS_KEY);}catch(e){}
         const ap=document.querySelector(".page.active");
         if(ap?.id==="page-goals")renderGoals();
+        return;
       }
+      _firstGoalSnap=false;
+      goals=remote;
+      try{localStorage.setItem(GOALS_KEY,JSON.stringify(goals));}catch(e){}
+      const ap=document.querySelector(".page.active");
+      if(ap?.id==="page-goals")renderGoals();
     },err=>console.warn("Firestore goals listener error:",err));
 }
 
@@ -1582,7 +1603,7 @@ function renderGoals(){
     const statusCls=hit?"hit":onTrack?"on-track":"off-track";
     const dirLabel={accumulate:"↑ accumulating",reach:"→ reaching",reduce:"↓ reducing"}[g.direction]||"";
     // Recent log entries
-    const recentLog=[...g.log].sort((a,b)=>b.ts-a.ts).slice(0,3);
+    const recentLog=[...(g.log||[])].sort((a,b)=>b.ts-a.ts).slice(0,3);
     const logHtml=recentLog.length?`<div class="goal-log">${recentLog.map(l=>`<div class="goal-log-item"><span class="gl-val">${l.source==="trade"?"📈":"✏"} ${l.val%1===0?l.val:l.val.toFixed(2)} ${g.unit}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text4)">${esc(l.text)}</span><span class="gl-date">${fmtDate(l.ts).split("·")[0].trim()}</span></div>`).join("")}</div>`:"";
     return `<div class="goal-card">
       <button class="goal-delete" onclick="deleteGoal(${g.id})">×</button>
@@ -1593,7 +1614,7 @@ function renderGoals(){
         <div><span class="goal-current" style="color:${fillColor}">${g.current % 1===0?g.current:g.current.toFixed(1)} ${g.unit}</span><span class="goal-target"> / ${g.target} ${g.unit}</span></div>
         <span class="goal-status ${statusCls}">${statusLabel}</span>
       </div>
-      <div style="font-size:10px;font-family:monospace;color:var(--text4);margin-top:4px">${pct}% complete · ${g.log.length} journal update${g.log.length!==1?"s":""}</div>
+      <div style="font-size:10px;font-family:monospace;color:var(--text4);margin-top:4px">${pct}% complete · ${(g.log||[]).length} journal update${(g.log||[]).length!==1?"s":""}</div>
       ${logHtml}
     </div>`;
   });
