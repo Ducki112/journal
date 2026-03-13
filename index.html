@@ -266,6 +266,34 @@ textarea::placeholder{color:var(--text4)}
 .lightbox{display:none;position:fixed;inset:0;background:#000000cc;z-index:400;align-items:center;justify-content:center;cursor:pointer;pointer-events:none}
 .lightbox.show{display:flex;pointer-events:all}
 .lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:4px}
+/* Chart Focus — write while viewing chart */
+.cf-overlay{display:none;position:fixed;inset:0;z-index:350;flex-direction:column;background:var(--bg)}
+.cf-overlay.show{display:flex}
+.cf-topbar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;gap:12px;flex-wrap:wrap}
+.cf-title{font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px}
+.cf-zoom-row{display:flex;align-items:center;gap:5px}
+.cf-zoom-row button{background:var(--bg3);border:1px solid var(--border2);color:var(--text3);border-radius:4px;padding:2px 9px;font-size:13px;font-family:monospace;cursor:pointer;line-height:1.4}
+.cf-zoom-row button:hover{background:var(--border);color:var(--text)}
+.cf-zoom-pct{font-size:10px;font-family:monospace;color:var(--teal);min-width:36px;text-align:center}
+.cf-close-btn{background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:4px;padding:4px 13px;font-size:11px;font-family:monospace;cursor:pointer;transition:all .15s}
+.cf-close-btn:hover{border-color:var(--red);color:var(--red)}
+.cf-body{display:flex;flex:1;overflow:hidden}
+.cf-img-side{flex:1;overflow:hidden;position:relative;background:#000;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none}
+.cf-img-side:active{cursor:grabbing}
+.cf-img-side img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;pointer-events:none;will-change:transform}
+.cf-text-side{width:360px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border)}
+.cf-text-header{padding:9px 14px;font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.cf-text-side textarea{flex:1;background:transparent;border:none;outline:none;padding:14px;color:var(--text);font-size:var(--font-content,14px);font-family:var(--font-family);resize:none;line-height:1.7}
+.cf-text-side textarea::placeholder{color:var(--text4)}
+.cf-text-footer{padding:9px 14px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;display:flex;justify-content:flex-end}
+.cf-done-btn{background:var(--text);color:var(--bg);border:none;border-radius:4px;padding:7px 18px;font-size:11px;font-family:monospace;cursor:pointer;transition:opacity .15s}
+.cf-done-btn:hover{opacity:.85}
+.cf-hint{font-size:10px;font-family:monospace;color:var(--text4);padding:5px 0;flex:1}
+@media(max-width:700px){
+  .cf-body{flex-direction:column}
+  .cf-img-side{flex:none;height:42vh}
+  .cf-text-side{width:100%;flex:1;border-left:none;border-top:1px solid var(--border)}
+}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* iOS safe areas */
@@ -856,6 +884,32 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
   </div>
 </div>
 
+<!-- Chart Focus: split-screen write + view -->
+<div class="cf-overlay" id="cf-overlay">
+  <div class="cf-topbar">
+    <span class="cf-title">📊 CHART FOCUS — scroll or pinch to zoom · drag to pan</span>
+    <div class="cf-zoom-row">
+      <button onclick="cfZoom(-0.2)">−</button>
+      <span class="cf-zoom-pct" id="cf-zoom-pct">100%</span>
+      <button onclick="cfZoom(0.2)">+</button>
+      <button onclick="cfZoomReset()" title="Reset zoom &amp; pan">⊙</button>
+    </div>
+    <button class="cf-close-btn" onclick="closeChartFocus()">✕ Done</button>
+  </div>
+  <div class="cf-body">
+    <div class="cf-img-side" id="cf-img-side">
+      <img id="cf-img" src="" alt="chart"/>
+    </div>
+    <div class="cf-text-side">
+      <div class="cf-text-header">✏ JOURNAL ENTRY</div>
+      <textarea id="cf-textarea" placeholder="Write your trade notes while viewing the chart..."></textarea>
+      <div class="cf-text-footer">
+        <span class="cf-hint">Esc or Done to return</span>
+        <button class="cf-done-btn" onclick="closeChartFocus()">Save &amp; Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightbox-img" src=""/></div>
 
 <script>
@@ -1218,12 +1272,92 @@ function handleImgDrop(e){e.preventDefault();document.getElementById("img-zone")
 function handleImgFile(file){if(!file)return;const r=new FileReader();r.onload=ev=>{compressImage(ev.target.result,1200,0.75,compressed=>{currentImage={dataUrl:compressed,name:file.name};renderImgZone();updateSaveBtn();});};r.readAsDataURL(file);}
 function renderImgZone(){
   const z=document.getElementById("img-zone");
-  if(currentImage){z.className="img-zone has-img";z.innerHTML=`<img src="${currentImage.dataUrl}" alt="attached"/><div class="img-actions"><span class="img-label">&#128206; ${currentImage.name}</span><button class="remove-img" onclick="event.stopPropagation();removeImage()">remove x</button></div>`;z.onclick=null;}
+  if(currentImage){z.className="img-zone has-img";z.innerHTML=`<img src="${currentImage.dataUrl}" alt="attached" style="cursor:zoom-in" title="Click to open chart focus view" onclick="event.stopPropagation();openChartFocus()"/><div class="img-actions"><span class="img-label">&#128206; ${currentImage.name}</span><button style="color:var(--teal)" onclick="event.stopPropagation();openChartFocus()">&#128269; Write &amp; View</button><button class="remove-img" onclick="event.stopPropagation();removeImage()">remove x</button></div>`;z.onclick=null;}
   else{z.className="img-zone";z.innerHTML="&#128206; Attach Chart or Image (Click or Drag)";z.onclick=triggerImgUpload;}
 }
 function removeImage(){currentImage=null;renderImgZone();updateSaveBtn();}
 function openLightbox(src){document.getElementById("lightbox-img").src=src;document.getElementById("lightbox").classList.add("show");}
 function closeLightbox(){document.getElementById("lightbox").classList.remove("show");}
+
+// ── Chart Focus (split-screen: view chart + write simultaneously) ──────────
+let _cfZoom=1,_cfPan={x:0,y:0},_cfDrag=null,_cfLastDist=null;
+
+function openChartFocus(){
+  if(!currentImage)return;
+  document.getElementById("cf-img").src=currentImage.dataUrl;
+  _cfZoom=1;_cfPan={x:0,y:0};
+  _updateCfTransform();
+  document.getElementById("cf-zoom-pct").textContent="100%";
+  document.getElementById("cf-textarea").value=document.getElementById("note-input").value;
+  document.getElementById("cf-overlay").classList.add("show");
+  setTimeout(()=>document.getElementById("cf-textarea").focus(),80);
+}
+function closeChartFocus(){
+  document.getElementById("note-input").value=document.getElementById("cf-textarea").value;
+  updateSaveBtn();
+  document.getElementById("cf-overlay").classList.remove("show");
+}
+function cfZoom(delta){
+  _cfZoom=Math.max(0.25,Math.min(8,_cfZoom+delta));
+  document.getElementById("cf-zoom-pct").textContent=Math.round(_cfZoom*100)+"%";
+  _updateCfTransform();
+}
+function cfZoomReset(){
+  _cfZoom=1;_cfPan={x:0,y:0};
+  document.getElementById("cf-zoom-pct").textContent="100%";
+  _updateCfTransform();
+}
+function _updateCfTransform(){
+  document.getElementById("cf-img").style.transform=`translate(${_cfPan.x}px,${_cfPan.y}px) scale(${_cfZoom})`;
+}
+function _initChartFocus(){
+  const side=document.getElementById("cf-img-side");
+  // Mouse wheel zoom centered on cursor
+  side.addEventListener("wheel",e=>{
+    e.preventDefault();
+    cfZoom(e.deltaY<0?0.15:-0.15);
+  },{passive:false});
+  // Mouse drag to pan
+  side.addEventListener("mousedown",e=>{
+    if(e.button!==0)return;
+    _cfDrag={x:e.clientX-_cfPan.x,y:e.clientY-_cfPan.y};
+  });
+  side.addEventListener("mousemove",e=>{
+    if(!_cfDrag)return;
+    _cfPan.x=e.clientX-_cfDrag.x;
+    _cfPan.y=e.clientY-_cfDrag.y;
+    _updateCfTransform();
+  });
+  side.addEventListener("mouseup",()=>_cfDrag=null);
+  side.addEventListener("mouseleave",()=>_cfDrag=null);
+  // Pinch-to-zoom (mobile)
+  side.addEventListener("touchstart",e=>{
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      _cfLastDist=Math.sqrt(dx*dx+dy*dy);
+    }
+  },{passive:true});
+  side.addEventListener("touchmove",e=>{
+    if(e.touches.length===2){
+      e.preventDefault();
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(_cfLastDist){
+        _cfZoom=Math.max(0.25,Math.min(8,_cfZoom*(dist/_cfLastDist)));
+        document.getElementById("cf-zoom-pct").textContent=Math.round(_cfZoom*100)+"%";
+        _updateCfTransform();
+      }
+      _cfLastDist=dist;
+    }
+  },{passive:false});
+  side.addEventListener("touchend",()=>_cfLastDist=null);
+  // ESC closes
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape"&&document.getElementById("cf-overlay").classList.contains("show"))closeChartFocus();
+  });
+}
 
 // ── Status & Error ─────────────────────────────────────────────────────────
 function setStatus(type,text){
@@ -2713,6 +2847,7 @@ function initApp(){
   renderMiniFeeed();
   updateEntryCount();
   loadSettings();
+  _initChartFocus();
 }
 document.addEventListener("DOMContentLoaded",initApp);
 
