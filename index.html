@@ -471,6 +471,16 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 
 <!-- PATTERNS -->
 <div class="page full" id="page-patterns">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <span style="font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px">PATTERNS &amp; ANALYSIS</span>
+    <select id="patterns-date-range" onchange="renderPatterns()" style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 9px;font-size:11px;font-family:monospace;color:var(--text);outline:none;cursor:pointer">
+      <option value="all">All time</option>
+      <option value="7">Last 7 days</option>
+      <option value="30">Last 30 days</option>
+      <option value="90">Last 90 days</option>
+      <option value="month">This month</option>
+    </select>
+  </div>
   <div class="patterns-grid" id="patterns-grid"></div>
   <div class="two-col">
     <div class="mistakes-card">
@@ -1242,23 +1252,43 @@ function selectCalDay(d){
 
 // ── Patterns ───────────────────────────────────────────────────────────────
 function renderPatterns(){
-  const trades=entries.filter(e=>e.trade?.pnl!=null);
+  // ── Date range filter ──────────────────────────────────────────────────
+  const range=document.getElementById("patterns-date-range")?.value||"all";
+  const now=Date.now();
+  function inRange(ts){
+    if(range==="all")return true;
+    if(range==="month"){const d=new Date(ts);const t=new Date();return d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
+    return ts>=now-parseInt(range)*86400000;
+  }
+  const filtered=entries.filter(e=>inRange(e.ts));
+  const trades=filtered.filter(e=>e.trade?.pnl!=null);
   const wins=trades.filter(e=>e.trade.pnl>0),losses=trades.filter(e=>e.trade.pnl<=0);
   const totalPnl=trades.reduce((s,e)=>s+e.trade.pnl,0);
   const winRate=trades.length?Math.round(wins.length/trades.length*100):0;
   const avgWin=wins.length?wins.reduce((s,e)=>s+e.trade.pnl,0)/wins.length:0;
   const avgLoss=losses.length?losses.reduce((s,e)=>s+e.trade.pnl,0)/losses.length:0;
   const expectancy=trades.length?totalPnl/trades.length:0;
+  // ── Average grade ──────────────────────────────────────────────────────
+  const GVAL={"F":0,"D":1,"C":2,"B":3,"A":4,"A+":5};
+  const gradedTrades=trades.filter(e=>e.grade&&GVAL[e.grade]!=null);
+  let avgGradeStr="—",avgGradeCls="";
+  if(gradedTrades.length){
+    const avg=gradedTrades.reduce((s,e)=>s+GVAL[e.grade],0)/gradedTrades.length;
+    const letter=avg>=4.5?"A+":avg>=3.5?"A":avg>=2.5?"B":avg>=1.5?"C":avg>=0.5?"D":"F";
+    avgGradeStr=letter;
+    avgGradeCls=letter==="A+"||letter==="A"?"good":letter==="B"?"warn":"danger";
+  }
   document.getElementById("patterns-grid").innerHTML=[
-    {label:"TOTAL ENTRIES",val:entries.length,sub:`${trades.length} trades logged`,cls:""},
+    {label:"TOTAL ENTRIES",val:filtered.length,sub:`${trades.length} trades logged`,cls:""},
     {label:"WIN RATE",val:trades.length?winRate+"%":"—",sub:`${wins.length}W / ${losses.length}L`,cls:winRate>=50?"good":winRate>=40?"warn":"danger"},
     {label:"TOTAL P&L",val:trades.length?(totalPnl>=0?"+":"")+"$"+totalPnl.toFixed(2):"—",sub:"all logged trades",cls:totalPnl>=0?"good":"danger"},
     {label:"AVG WIN",val:wins.length?"+$"+avgWin.toFixed(2):"—",sub:"per winning trade",cls:"good"},
     {label:"AVG LOSS",val:losses.length?"$"+avgLoss.toFixed(2):"—",sub:"per losing trade",cls:"danger"},
     {label:"EXPECTANCY",val:trades.length?(expectancy>=0?"+":"")+"$"+expectancy.toFixed(2):"—",sub:"avg P&L per trade",cls:expectancy>=0?"good":"danger"},
+    {label:"AVG TRADE GRADE",val:avgGradeStr,sub:gradedTrades.length?`across ${gradedTrades.length} graded trade${gradedTrades.length!==1?"s":""}`:trades.length?"no grades yet — log trades to grade","",cls:avgGradeCls},
   ].map(({label,val,sub,cls})=>`<div class="pattern-card ${cls}"><h3>${label}</h3><div class="big-num">${val}</div><div class="sub">${sub}</div></div>`).join("");
   const mt=[{label:"Fear",keys:["scared","afraid","fear","panic"]},{label:"Cut winners",keys:["sold too early","took profit too early","could have held"]},{label:"FOMO",keys:["fomo","chased","jumped in"]},{label:"Revenge",keys:["revenge","make it back","recoup"]},{label:"Hold losers",keys:["held.*loss","didn't cut","averaged down"]},{label:"Oversize",keys:["too big","oversize","risked too much"]},{label:"Boredom",keys:["boredom","bored","just wanted to trade"]},{label:"Emotional",keys:["emotional","frustrated","angry","impatient"]}];
-  const counts=mt.map(m=>({label:m.label,count:entries.filter(e=>m.keys.some(k=>new RegExp(k).test((e.text||"").toLowerCase()))).length}));
+  const counts=mt.map(m=>({label:m.label,count:filtered.filter(e=>m.keys.some(k=>new RegExp(k).test((e.text||"").toLowerCase()))).length}));
   const maxC=Math.max(...counts.map(c=>c.count),1);
 
   // ── Radar chart ────────────────────────────────────────────────────────
@@ -1353,10 +1383,10 @@ function renderPatterns(){
       ${c.label}${c.count>0?` · ${c.count}`:""}
     </div>`).join("");
   const sortedCounts=[...counts].sort((a,b)=>b.count-a.count);
-  const topM=sortedCounts[0];const goodT=entries.filter(e=>e.analysis?.topic?.includes("good execution")).length;
-  const fearC=entries.filter(e=>/(scared|afraid|fear|panic)/.test((e.text||"").toLowerCase())).length;
-  const lateE=entries.filter(e=>e.ts>NOW-10*DAY);const lateG=lateE.filter(e=>e.analysis?.topic?.includes("good execution")).length;
-  const earlyG=entries.filter(e=>e.ts<NOW-15*DAY&&e.analysis?.topic?.includes("good execution")).length;
+  const topM=sortedCounts[0];const goodT=filtered.filter(e=>e.analysis?.topic?.includes("good execution")).length;
+  const fearC=filtered.filter(e=>/(scared|afraid|fear|panic)/.test((e.text||"").toLowerCase())).length;
+  const lateE=filtered.filter(e=>e.ts>now-10*DAY);const lateG=lateE.filter(e=>e.analysis?.topic?.includes("good execution")).length;
+  const earlyG=filtered.filter(e=>e.ts<now-15*DAY&&e.analysis?.topic?.includes("good execution")).length;
   document.getElementById("ai-insights").innerHTML=[
     topM.count>0?`Your most frequent pattern is <strong style="color:var(--text)">"${topM.label}"</strong> — ${topM.count} times.`:"No single mistake dominates. Discipline is consistent.",
     fearC>2?`Fear-based decisions appear in ${fearC} entries. Sizing may be too large.`:"Fear-based decisions are infrequent. Sizing and risk tolerance appear well-matched.",
