@@ -1603,6 +1603,9 @@ function renderGoals(){
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
   initFirebase();
+  // ONE-TIME DATA WIPE — will be removed after clean upload
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(GOALS_KEY);
   // Apply saved theme label
   try{const t=localStorage.getItem(THEME_KEY);if(t){document.getElementById("theme-toggle").textContent=t==="dark"?"🌙":"☀️";}}catch(e){}
   // Build tag buttons
