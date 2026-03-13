@@ -558,10 +558,6 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
       <div class="ap-tips-label">ACTIONABLE TIPS</div>
       <div id="ap-tips"></div>
     </div>
-    <div class="card">
-      <div class="card-header">RECENT ENTRIES <span id="win-rate-small"></span></div>
-      <div id="mini-feed" style="padding:0 0 4px"></div>
-    </div>
   </div>
 </div>
 
@@ -1066,7 +1062,7 @@ function _fsSubscribe(){
     .onSnapshot(snap=>{
       entries=snap.docs.map(d=>d.data());
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));}catch(e){}
-      updateEntryCount();renderMiniFeeed();
+      updateEntryCount();
       const ap=document.querySelector(".page.active");
       if(ap){
         if(ap.id==="page-feed")renderFeed();
@@ -1578,8 +1574,7 @@ function doSave(){
     const cb=document.getElementById("timesens-check");if(cb)cb.checked=false;
     const row=document.getElementById("timesens-row");if(row)row.classList.remove("show");
     const tog=document.getElementById("timesens-toggle");if(tog)tog.classList.remove("active");
-    updateSaveBtn();updateEntryCount();setStatus(null);openDetailPage(entry.id);renderMiniFeeed();
-  },250);
+    updateSaveBtn();updateEntryCount();setStatus(null);openDetailPage(entry.id);  },250);
 }
 
 // ── AI Analysis ────────────────────────────────────────────────────────────
@@ -1822,15 +1817,6 @@ function goBackToFeed(){
   renderFeed();
 }
 
-// ── Mini Feed ──────────────────────────────────────────────────────────────
-function renderMiniFeeed(){
-  const el=document.getElementById("mini-feed");
-  const recent=entries.slice(0,6);
-  if(!recent.length){el.innerHTML='<div style="padding:10px 14px;font-size:var(--font-small);color:var(--text4);font-family:monospace">No entries yet</div>';return;}
-  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:var(--font-small);font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${TAG_LABELS[e.tag]||e.tag}</span>${e.trade?.ticker?`<span style="font-size:var(--font-small);font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:var(--font-xsmall);font-family:monospace;padding:1px 4px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:var(--font-small);font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:var(--font-small);font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:var(--font-content);color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
-  const trades=entries.filter(e=>e.trade?.pnl!=null);
-  if(trades.length){const wins=trades.filter(e=>e.trade.pnl>0).length;document.getElementById("win-rate-small").textContent=Math.round(wins/trades.length*100)+"% win rate";}
-}
 
 // ── Feed ───────────────────────────────────────────────────────────────────
 function renderFeed(){
@@ -1878,8 +1864,7 @@ function deleteEntry(id){
     saveData(GOALS_KEY,goals);
     fsSaveGoals(goals);
   }
-  updateEntryCount();renderFeed();renderMiniFeeed();
-}
+  updateEntryCount();renderFeed();}
 function updateEntryCount(){document.getElementById("entry-count").textContent=`${entries.length} entr${entries.length!==1?"ies":"y"}`;}
 
 // ── Calendar ───────────────────────────────────────────────────────────────
@@ -2528,8 +2513,7 @@ function saveEditEntry(){
 
   closeEditModal();
   openDetailPage(_editingId);
-  renderMiniFeeed();
-  if(document.getElementById("page-feed").classList.contains("active"))renderFeed();
+    if(document.getElementById("page-feed").classList.contains("active"))renderFeed();
 }
 
 // ── Weekly Review ──────────────────────────────────────────────────────────
@@ -2652,8 +2636,7 @@ function saveWeeklyReview(){
   saveData(STORAGE_KEY,entries);
   fsAddEntry(entry);
   updateEntryCount();
-  renderMiniFeeed();
-  closeWeeklyReview();
+    closeWeeklyReview();
   openDetailPage(entry.id);
 }
 
@@ -2962,8 +2945,7 @@ function initApp(){
   document.getElementById("note-input").addEventListener("input",updateSaveBtn);
   selectTag("trading");
   setMode("trading");
-  renderMiniFeeed();
-  updateEntryCount();
+    updateEntryCount();
   loadSettings();
   _initChartFocus();
 }
