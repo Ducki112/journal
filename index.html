@@ -336,6 +336,10 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 .timesens-banner{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 25%,transparent);font-size:10px;font-family:monospace;color:var(--amber)}
 .inst-badge{display:inline-block;font-size:9px;font-family:monospace;padding:1px 5px;border-radius:10px;background:color-mix(in srgb,var(--teal) 15%,transparent);color:var(--teal);border:1px solid color-mix(in srgb,var(--teal) 25%,transparent);margin-left:4px;}
 .inst-badge.futures{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);border-color:color-mix(in srgb,var(--amber) 25%,transparent);}
+.acct-btn{padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s}
+.acct-btn.active-live{border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)}
+.acct-btn.active-funded{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 12%,transparent);color:var(--teal)}
+.acct-btn.active-eval{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--amber)}
 
 
 </style>
@@ -400,6 +404,13 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
             <label>DIRECTION</label>
             <select id="tf-direction"><option value="long">Long</option><option value="short">Short</option></select>
           </div>
+        </div>
+        <!-- Account type -->
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 14px 0">
+          <span style="font-size:10px;font-family:monospace;color:var(--text4);letter-spacing:.5px">ACCOUNT</span>
+          <button class="acct-btn active-live" id="acct-live" onclick="setAccount('live')">live</button>
+          <button class="acct-btn" id="acct-funded" onclick="setAccount('funded')">funded</button>
+          <button class="acct-btn" id="acct-eval" onclick="setAccount('eval')">eval</button>
         </div>
         <!-- Price / contracts row -->
         <div class="field-row" style="padding:8px 14px 10px;">
@@ -587,6 +598,7 @@ const CHECKLIST=[
 const GRADE_MAP=["F","F","D","C","B","A","A+"];
 const GRADE_COLOR={"A+":"#00d4aa","A":"#27ae60","B":"#f39c12","C":"#e67e22","D":"#e74c3c","F":"#888"};
 let _pendingGrade=null;
+let selectedAccount="live";
 const FUTURES_PV={NQ:20,ES:50,YM:5,RTY:50,CL:1000,GC:100,SI:5000,MNQ:2,MES:5,MYM:0.5,M2K:5,MCL:100,MGC:10};
 const FUTURES_TICK={NQ:0.25,ES:0.25,YM:1,RTY:0.1,CL:0.01,GC:0.1,SI:0.005,MNQ:0.25,MES:0.25,MYM:1,M2K:0.1,MCL:0.01,MGC:0.1};
 
@@ -1017,7 +1029,7 @@ function doSave(){
     entry:parseFloat(document.getElementById("tf-entry").value)||null,
     exit:parseFloat(document.getElementById("tf-exit").value)||null,
     shares:parseFloat(document.getElementById("tf-shares").value)||null,
-    instrument:inst,isFutures,pointValue:pv
+    instrument:inst,isFutures,pointValue:pv,accountType:selectedAccount
   }:null;
   if(tradeData){
     const e=tradeData.entry,x=tradeData.exit,qty=tradeData.shares,d=tradeData.direction;
@@ -1035,6 +1047,7 @@ function doSave(){
     checkNewEntryAgainstGoals(entry);
     document.getElementById("note-input").value="";finalTranscript="";currentImage=null;renderImgZone();
     ["tf-ticker","tf-entry","tf-exit","tf-shares"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    setAccount("live");
     document.getElementById("pnl-display").textContent="—";document.getElementById("pnl-display").className="pnl-display";
     document.getElementById("pt-value-badge").style.display="none";
     const cb=document.getElementById("timesens-check");if(cb)cb.checked=false;
@@ -1252,7 +1265,7 @@ function openDetailPage(id){
   }
   if(e.image)html+=`<img class="detail-image" src="${e.image}" onclick="openLightbox('${e.image}')"/>`;
   if(e.text)html+=`<div class="detail-text ${!e.image&&!e.trade?.ticker?"no-border":""}">${esc(e.text)}</div>`;
-  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span><span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
+  html+=`<div class="detail-meta"><span class="detail-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span><span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.mode==="trading"?"trade":"journal"}</span>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType}</span>`:""}<span class="detail-date">${fmtDate(e.ts)}</span><button onclick="deleteEntry(${e.id});goBackToFeed()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text4);border-radius:4px;padding:3px 9px;font-size:10px;font-family:monospace;cursor:pointer">delete</button></div>`;
   if(e.reminder){
     const rd=new Date(e.reminder);
     const rdStr=rd.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})+" at "+rd.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
@@ -1289,7 +1302,7 @@ function renderMiniFeeed(){
   const el=document.getElementById("mini-feed");
   const recent=entries.slice(0,6);
   if(!recent.length){el.innerHTML='<div style="padding:10px 14px;font-size:11px;color:var(--text4);font-family:monospace">No entries yet</div>';return;}
-  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${TAG_LABELS[e.tag]||e.tag}</span>${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:10px;font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:10px;font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:11px;color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
+  el.innerHTML=recent.map(e=>`<div style="padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDetailPage(${e.id})"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:10px;font-family:monospace;color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18;padding:1px 5px;border-radius:10px">${TAG_LABELS[e.tag]||e.tag}</span>${e.trade?.ticker?`<span style="font-size:10px;font-family:monospace;color:var(--text4)">${e.trade.ticker}</span>`:""} ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 4px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType}</span>`:""} ${e.trade?.pnl!=null?`<span style="font-size:10px;font-family:monospace;color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}<span style="font-size:10px;font-family:monospace;color:var(--text4);margin-left:auto">${fmtDate(e.ts)}</span></div><div style="font-size:11px;color:var(--text4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(e.text||"(image only)")}</div></div>`).join("");
   const trades=entries.filter(e=>e.trade?.pnl!=null);
   if(trades.length){const wins=trades.filter(e=>e.trade.pnl>0).length;document.getElementById("win-rate-small").textContent=Math.round(wins/trades.length*100)+"% win rate";}
 }
@@ -1314,6 +1327,7 @@ function renderFeed(){
         ${pnlStr?`<span style="font-size:10px;font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
         ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
         ${e.grade?`<span style="font-size:10px;font-family:monospace;font-weight:bold;color:${GRADE_COLOR[e.grade]};background:${GRADE_COLOR[e.grade]}22;border:1px solid ${GRADE_COLOR[e.grade]}44;padding:1px 6px;border-radius:10px">${e.grade}</span>`:""}
+        ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType}</span>`:""}
         <span class="entry-date">${fmtDate(e.ts)}</span>
         <button class="entry-delete" onclick="event.stopPropagation();deleteEntry(${e.id})">x</button>
       </div>
@@ -1368,7 +1382,7 @@ function selectCalDay(d){
   const dayPnl=dayEntries.reduce((s,e)=>s+(e.trade?.pnl||0),0);
   const hasTrades=dayEntries.some(e=>e.trade?.pnl!=null);
   det.innerHTML=`<div class="cal-detail-header"><span>${MONTHS[calMonth]} ${d}, ${calYear}</span>${hasTrades?`<span style="font-family:monospace;font-size:13px;color:${dayPnl>=0?"var(--green)":"var(--red)"}">${dayPnl>=0?"+":""}$${dayPnl.toFixed(2)}</span>`:""}</div>`+
-    dayEntries.map(e=>`<div class="cal-entry-row" onclick="openDetailPage(${e.id})"><div style="width:7px;height:7px;border-radius:50%;background:${TAG_ACCENT[e.tag]};flex-shrink:0;margin-top:2px"></div><div class="cal-entry-text">${esc(e.text||"(image only)")}</div>${e.trade?.pnl!=null?`<span class="cal-entry-pnl" style="color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}</div>`).join("");
+    dayEntries.map(e=>`<div class="cal-entry-row" onclick="openDetailPage(${e.id})"><div style="width:7px;height:7px;border-radius:50%;background:${TAG_ACCENT[e.tag]};flex-shrink:0;margin-top:2px"></div><div class="cal-entry-text">${esc(e.text||"(image only)")}</div>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 5px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"};border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"}">${e.trade.accountType}</span>`:""} ${e.trade?.pnl!=null?`<span class="cal-entry-pnl" style="color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}</div>`).join("");
 }
 
 // ── Patterns ───────────────────────────────────────────────────────────────
@@ -1817,7 +1831,15 @@ function recalcGoalCurrent(goal){
   }
 }
 
+function setAccount(type){
+  selectedAccount=type;
+  const cls={live:"active-live",funded:"active-funded",eval:"active-eval"};
+  ["live","funded","eval"].forEach(t=>{const btn=document.getElementById("acct-"+t);if(btn)btn.className="acct-btn"+(t===type?" "+cls[t]:"");});
+}
+
 function checkNewEntryAgainstGoals(entry){
+  // Eval trades are paper money — never count toward real goals
+  if(entry.mode==="trading"&&entry.trade?.accountType==="eval")return;
   let updated=false;
   for(const goal of goals){
     if(goal.type!=="custom")continue;
