@@ -50,29 +50,31 @@ header h1{font-size:1.57rem;font-weight:400;letter-spacing:-.5px;cursor:pointer;
 header h1:hover{color:var(--teal)}
 .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .demo-badge{font-size:0.71rem;font-family:monospace;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 25%,transparent);padding:2px 7px;border-radius:20px}
-.meta-pill{font-size:0.79rem;color:var(--text4);font-family:monospace}
+.meta-pill{font-size:0.79rem;color:var(--text2);font-family:monospace}
 .save-indicator{font-size:0.71rem;font-family:monospace;color:var(--teal);opacity:0;transition:opacity .3s}
 .save-indicator.show{opacity:1}
 .theme-toggle{background:var(--bg3);border:1px solid var(--border2);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:1.14rem;cursor:pointer;transition:all .2s;flex-shrink:0;line-height:1}
 .theme-toggle:hover{border-color:var(--border3);background:var(--bg2)}
-.sync-btn{font-size:0.71rem;font-family:monospace;color:var(--text4);background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .2s;flex-shrink:0;white-space:nowrap}
-.sync-btn:hover{border-color:var(--border3);color:var(--text3)}
+.sync-btn{font-size:0.71rem;font-family:monospace;color:var(--text2);background:transparent;border:1px solid var(--border2);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .2s;flex-shrink:0;white-space:nowrap}
+.sync-btn:hover{border-color:var(--border3);color:var(--text)}
 .sync-btn.connected{color:var(--teal);border-color:color-mix(in srgb,var(--teal) 30%,transparent)}
 .nav-tabs{display:flex;gap:3px}
-.nav-tab{padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:0.79rem;font-family:monospace;cursor:pointer;transition:all .15s}
-.nav-tab.active{background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text);border-color:var(--border2)}
+.nav-tab{padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:0.79rem;font-family:monospace;cursor:pointer;transition:all .15s}
+.nav-tab.active{background:color-mix(in srgb,var(--text) 12%,transparent);color:var(--text);border-color:var(--border3)}
 .nav-tab.hidden{display:none}
 .page{display:none;max-width:1200px;margin:0 auto;padding:24px 28px}
 .page.active{display:flex;gap:22px}
-#page-compose{min-height:calc(100vh - 90px);align-items:stretch}
+#page-compose{min-height:calc(100vh - 90px);align-items:stretch;max-width:none;width:100%;padding:24px 32px}
 .page.full{display:none;flex-direction:column}
 .page.full.active{display:flex}
+#page-calendar.active{flex-direction:column}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden}
 .card-header{padding:10px 14px;border-bottom:1px solid var(--border);font-size:var(--font-small);font-family:monospace;color:var(--text4);letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between}
 .card-header span{color:var(--teal)}
 .compose-col{flex:1;min-width:0;display:flex;flex-direction:column}
 .compose-col .card{flex:1;display:flex;flex-direction:column}
-.analysis-col{width:300px;flex-shrink:0;align-self:flex-start}
+.analysis-col{width:280px;flex-shrink:0;align-self:flex-start}
+.analysis-col:has(.analysis-panel.hidden){display:none}
 .mode-row{display:flex;gap:7px;padding:12px 14px;border-bottom:1px solid var(--border)}
 .mode-btn{flex:1;padding:7px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text4);font-size:0.79rem;font-family:monospace;cursor:pointer;transition:all .15s;text-align:center}
 .mode-btn.active{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,transparent);color:var(--teal)}
@@ -94,7 +96,7 @@ header h1:hover{color:var(--teal)}
 .img-zone .img-actions{display:flex;justify-content:space-between;padding:5px 9px;background:var(--neu-bg)}
 .img-zone .img-actions button{background:none;border:none;font-size:0.71rem;font-family:monospace;cursor:pointer}
 .remove-img{color:var(--red)}.img-label{color:var(--text4)}
-textarea{width:100%;background:transparent;border:none;outline:none;padding:12px 14px;color:var(--text);font-size:var(--font-content,14px);font-family:Georgia,serif;resize:none;line-height:1.7;display:block;flex:1;min-height:220px}
+textarea{width:100%;background:transparent;border:none;outline:none;padding:12px 14px;color:var(--text);font-size:var(--font-content,14px);font-family:Georgia,serif;resize:none;line-height:1.7;display:block;flex:1;min-height:300px}
 textarea::placeholder{color:var(--text4)}
 .compose-footer{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:7px}
 .left-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
@@ -124,6 +126,23 @@ textarea::placeholder{color:var(--text4)}
 .error-bar.show{display:flex}
 .error-bar button{background:none;border:none;color:var(--red);cursor:pointer;font-size:1.07rem}
 .feed{display:flex;flex-direction:column;gap:9px}
+.folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:22px}
+.folder-card{background:var(--bg2);border:1px solid var(--border);border-radius:0 8px 8px 8px;padding:20px 14px 16px;cursor:pointer;transition:all .18s;text-align:center;position:relative}
+.folder-card::before{content:'';position:absolute;top:-1px;left:-1px;width:42%;height:10px;border-radius:5px 5px 0 0;background:var(--fc,var(--teal))}
+.folder-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 18px #00000033}
+.folder-card.folder-card-active{background:var(--bg3);border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 18px #00000033}
+.folder-icon{width:40px;height:32px;border-radius:0 4px 4px 4px;margin:8px auto 10px;position:relative}
+.folder-icon::before{content:'';position:absolute;top:-7px;left:0;width:17px;height:7px;border-radius:4px 4px 0 0;background:inherit}
+.folder-card-name{font-size:0.79rem;font-family:monospace;color:var(--text);margin-bottom:4px;font-weight:500}
+.folder-card-count{font-size:0.64rem;font-family:monospace;color:var(--text4)}
+.folder-panel{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.folder-panel-top{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.folder-panel-label{font-size:0.71rem;font-family:monospace;letter-spacing:.5px;margin-right:auto}
+.folder-search{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 9px;color:var(--text);font-size:0.79rem;font-family:monospace;outline:none;width:200px}
+.folder-search::placeholder{color:var(--text4)}
+.folder-sort-btn{font-size:0.71rem;font-family:monospace;color:var(--text3);background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.folder-sort-btn:hover{color:var(--text);border-color:var(--border2)}
+.folder-entries{padding:8px;display:flex;flex-direction:column;gap:6px}
 .empty-state{text-align:center;color:var(--text4);padding:50px 0;font-size:0.86rem;font-family:monospace}
 .entry{background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;transition:border-color .15s}
 .entry:hover{border-color:var(--border2)}
@@ -142,13 +161,16 @@ textarea::placeholder{color:var(--text4)}
 .search-row input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:7px 10px;color:var(--text);font-size:0.79rem;font-family:monospace;outline:none}
 .search-row input::placeholder{color:var(--text4)}
 .search-row select{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:7px 9px;font-size:0.71rem;font-family:monospace;outline:none;cursor:pointer;color:var(--text)}
+#page-calendar{max-width:none;width:100%;padding:24px 32px;gap:20px;flex-direction:column}
+.cal-main-col{width:100%}
+.cal-detail-col{width:100%}
 .cal-controls{display:flex;align-items:center;gap:12px;margin-bottom:16px}
 .cal-controls button{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px 11px;color:var(--text3);font-size:0.93rem;cursor:pointer;transition:all .15s}
 .cal-controls button:hover{color:var(--text)}
 .cal-month{font-size:1.07rem;font-weight:400}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
-.cal-day-label{text-align:center;font-size:0.71rem;font-family:monospace;color:var(--text4);padding:5px 0}
-.cal-day{min-height:64px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:5px;cursor:pointer;transition:all .15s}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.cal-day-label{text-align:center;font-size:0.79rem;font-family:monospace;color:var(--text4);padding:6px 0}
+.cal-day{min-height:110px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:8px;cursor:pointer;transition:all .15s}
 .cal-day:hover{border-color:var(--border2)}
 .cal-day.empty{background:transparent;border-color:transparent;cursor:default}
 .cal-day.today{border-color:color-mix(in srgb,var(--teal) 50%,transparent)}
@@ -157,6 +179,7 @@ textarea::placeholder{color:var(--text4)}
 .cal-day.has-mixed{border-left:3px solid var(--amber)}
 .cal-day.has-journal{border-left:3px solid var(--text4)}
 .cal-day.selected{background:var(--bg3);border-color:var(--border2)}
+.cal-day.weekend{background:color-mix(in srgb,var(--bg2) 60%,var(--bg))}
 .cal-day-num{font-size:var(--font-xsmall);font-family:monospace;color:var(--text4);margin-bottom:2px}
 .cal-day.today .cal-day-num{color:var(--teal)}
 .cal-pnl{font-size:var(--font-xsmall);font-family:monospace}
@@ -165,6 +188,24 @@ textarea::placeholder{color:var(--text4)}
 .cal-dot{width:4px;height:4px;border-radius:50%}
 .cal-day-detail{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px}
 .cal-day-detail h3{font-size:0.79rem;font-family:monospace;color:var(--text4);margin-bottom:10px}
+.ff-toggle{font-size:0.71rem;font-family:monospace;color:var(--text4);background:transparent;border:1px solid var(--border);border-radius:20px;padding:3px 11px;cursor:pointer;transition:all .2s;white-space:nowrap;margin-left:auto}
+.ff-toggle:hover{border-color:var(--border3);color:var(--text3)}
+.ff-toggle.active{color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,transparent);background:color-mix(in srgb,var(--red) 8%,transparent)}
+.ff-panel{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:14px;display:none}
+.ff-panel.show{display:block}
+.ff-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ff-panel-title{font-size:0.71rem;font-family:monospace;color:var(--text4);letter-spacing:.5px}
+.ff-panel-status{font-size:0.71rem;font-family:monospace;color:var(--text4)}
+.ff-day-group{margin-bottom:12px}
+.ff-day-group:last-child{margin-bottom:0}
+.ff-day-label{font-size:0.71rem;font-family:monospace;color:var(--text3);margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border);letter-spacing:.3px}
+.ff-event{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.ff-event:last-child{border-bottom:none}
+.ff-event-dot{width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0}
+.ff-event-time{font-size:0.71rem;font-family:monospace;color:var(--text4);width:52px;flex-shrink:0}
+.ff-event-currency{font-size:0.64rem;font-family:monospace;padding:1px 5px;border-radius:3px;flex-shrink:0;letter-spacing:.3px}
+.ff-event-title{font-size:0.79rem;color:var(--text2);flex:1}
+.ff-event-vals{font-size:0.64rem;font-family:monospace;color:var(--text4);text-align:right;white-space:nowrap}
 .cal-entry-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer}
 .cal-entry-row:last-child{border-bottom:none}
 .cal-entry-row:hover .cal-entry-text{color:var(--text)}
@@ -340,7 +381,7 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 
   /* Calendar */
   #page-calendar { padding:14px 12px; }
-  .cal-day { min-height:44px; padding:3px; }
+  .cal-day { min-height:56px; padding:4px; }
   .cal-day-num { font-size:var(--font-xsmall); }
   .cal-pnl { font-size:var(--font-xsmall); }
 
@@ -567,23 +608,26 @@ header { padding-top: max(18px, env(safe-area-inset-top)); padding-left: max(16p
 
 <!-- ENTRIES -->
 <div class="page full" id="page-feed">
-  <div class="search-row">
-    <input type="text" id="search-input" placeholder="Search entries..." oninput="renderFeed()"/>
-    <select id="filter-tag" onchange="renderFeed()"><option value="all">All tags</option></select>
-    <select id="filter-mode" onchange="renderFeed()"><option value="all">All types</option><option value="trading">Trades</option><option value="journal">Journal</option></select>
-  </div>
-  <div class="feed" id="main-feed"></div>
+  <div class="folder-grid" id="folder-grid"></div>
+  <div class="folder-panel" id="folder-panel" style="display:none"></div>
 </div>
 
 <!-- CALENDAR -->
 <div class="page full" id="page-calendar">
-  <div class="cal-controls">
-    <button onclick="calPrev()">&#8249;</button>
-    <span class="cal-month" id="cal-month-label"></span>
-    <button onclick="calNext()">&#8250;</button>
+  <div class="cal-main-col">
+    <div class="cal-controls">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="calPrev()">&#8249;</button>
+        <span class="cal-month" id="cal-month-label"></span>
+        <button onclick="calNext()">&#8250;</button>
+      </div>
+      <button class="ff-toggle" id="ff-toggle" onclick="toggleFFNews()">News Feed</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
   </div>
-  <div class="cal-grid" id="cal-grid"></div>
-  <div class="cal-day-detail" id="cal-day-detail" style="display:none"></div>
+  <div class="cal-detail-col">
+    <div class="cal-day-detail" id="cal-day-detail" style="display:none"></div>
+  </div>
 </div>
 
 <!-- PATTERNS -->
@@ -1035,7 +1079,7 @@ function initFirebase(){
     _auth.onAuthStateChanged(user=>{
       _currentUser=user;
       _updateSyncUI();
-      if(user) _fsSubscribe();
+      if(user){_fsSubscribe();fsLoadFFArchive();}
       else _fsUnsubscribeAll();
     });
   }catch(e){console.warn("Firebase init error:",e);}
@@ -1107,6 +1151,30 @@ async function _fsUploadAllGoals(){
   await batch.commit().catch(err=>console.warn("Upload goals error:",err));
 }
 
+function fsLoadFFArchive(){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/meta/ff_archive").get()
+    .then(snap=>{
+      if(!snap.exists)return;
+      const cloudEvents=snap.data().events||[];
+      // Merge cloud into local archive (cloud may have events from other devices)
+      const seen=new Set(ffArchive.map(e=>e.date+'|'+e.title));
+      const toAdd=cloudEvents.filter(e=>!seen.has(e.date+'|'+e.title));
+      if(toAdd.length){
+        ffArchive=[...ffArchive,...toAdd];
+        localStorage.setItem(FF_ARCHIVE_KEY,JSON.stringify(ffArchive));
+        renderCalendar();
+        if(selectedCalDay)selectCalDay(selectedCalDay);
+      }
+    })
+    .catch(err=>console.warn("fsLoadFFArchive error:",err));
+}
+function fsSaveFFArchive(){
+  if(!_db||!_currentUser)return;
+  _db.doc("users/"+_currentUser.uid+"/meta/ff_archive")
+    .set({events:ffArchive},{merge:false})
+    .catch(err=>console.warn("fsSaveFFArchive error:",err));
+}
 function fsAddEntry(entry){
   if(!_db||!_currentUser)return;
   _db.doc("users/"+_currentUser.uid+"/entries/"+entry.id).set(entry)
@@ -1194,10 +1262,12 @@ function applyThemeMode(mode){
     }
   }
   _updateThemeUI(mode);
-  // Font color always wins — re-apply on top of whatever the theme set
-  if(_cp["fc"]?.hex){
+  // Custom font color only applies in custom mode
+  if(mode==="custom"&&_cp["fc"]?.hex){
     const fc=_cp["fc"].hex;
     ["--text","--text2","--text3","--text4"].forEach(v=>document.documentElement.style.setProperty(v,fc));
+  } else if(mode!=="custom"){
+    ["--text","--text2","--text3","--text4"].forEach(v=>document.documentElement.style.removeProperty(v));
   }
   saveSettings();
   if(document.getElementById("page-patterns")?.classList.contains("active"))renderPatterns();
@@ -1279,9 +1349,12 @@ let goals=loadData(GOALS_KEY,()=>[]);
 
 // ── UI State ───────────────────────────────────────────────────────────────
 let selectedTag="trading",currentMode="trading",currentImage=null;
+let folderState={},activeFolderTag=null;
 let isRecording=false,recognition=null,finalTranscript="";
 let expandedIds=new Set(),selectedCalDay=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+let ffEvents=null,ffLastFetch=0,ffVisible=localStorage.getItem('ff_visible')==='1';
+let ffArchive=[];
 let checklistState={};
 
 // ── Utilities ──────────────────────────────────────────────────────────────
@@ -1325,7 +1398,14 @@ function setMode(m){
     if(row) row.classList.remove("show");
     if(tog) tog.classList.remove("active");
   }
-  if(m==="trading") selectTag("trading");
+  const tagBtnsEl=document.getElementById("tag-buttons");
+  if(m==="trading"){
+    tagBtnsEl.style.display="none";
+    selectTag("trading");
+  } else {
+    tagBtnsEl.style.display="flex";
+    if(selectedTag==="trading") selectTag("personal");
+  }
 }
 function toggleTimeSens(){
   const cb=document.getElementById("timesens-check");
@@ -1842,42 +1922,97 @@ function goBackToFeed(){
 }
 
 
-// ── Feed ───────────────────────────────────────────────────────────────────
-function renderFeed(){
-  const search=(document.getElementById("search-input")?.value||"").toLowerCase();
-  const tagFilter=document.getElementById("filter-tag")?.value||"all";
-  const modeFilter=document.getElementById("filter-mode")?.value||"all";
-  const filtered=entries.filter(e=>(tagFilter==="all"||e.tag===tagFilter)&&(modeFilter==="all"||e.mode===modeFilter)&&(e.text.toLowerCase().includes(search)||(e.trade?.ticker||"").toLowerCase().includes(search)));
-  const el=document.getElementById("main-feed");
-  if(!filtered.length){el.innerHTML='<div class="empty-state">No entries found.</div>';return;}
-  el.innerHTML=filtered.map(e=>{
-    const exp=expandedIds.has(e.id);
-    const pnlStr=e.trade?.pnl!=null?(e.trade.pnl>=0?"+":"")+"$"+e.trade.pnl.toFixed(2):"";
-    const pnlColor=e.trade?.pnl!=null?(e.trade.pnl>=0?"var(--green)":"var(--red)"):"";
-    return `<div class="entry" style="border-left:3px solid ${TAG_ACCENT[e.tag]}">
-      <div class="entry-header" onclick="toggleExpand(${e.id})">
-        <span style="font-size:13px">${e.mode==="trading"?"📈":"📓"}</span>
-        <span class="entry-tag" style="color:${TAG_ACCENT[e.tag]};background:${TAG_ACCENT[e.tag]}18">${TAG_LABELS[e.tag]||e.tag}</span>
-        ${e.trade?.ticker?`<span style="font-size:var(--font-small);font-family:monospace;color:var(--text4)">${e.trade.ticker} ${e.trade.direction}</span>`:""}
-        ${pnlStr?`<span style="font-size:var(--font-small);font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
-        ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
-        ${e.grade?`<span style="font-size:10px;font-family:monospace;font-weight:bold;color:${GRADE_COLOR[e.grade]};background:${GRADE_COLOR[e.grade]}22;border:1px solid ${GRADE_COLOR[e.grade]}44;padding:1px 6px;border-radius:10px">${e.grade}</span>`:""}
-        ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}
-        <span class="entry-date">${fmtDate(e.ts)}</span>
-        <button class="entry-delete" onclick="event.stopPropagation();deleteEntry(${e.id})">x</button>
-      </div>
-      <div class="entry-body">
-        <p class="entry-text ${exp?"expanded":""}">${esc(e.text||"(image only)")}</p>
-        ${e.image?`<img class="entry-thumb" src="${e.image}" onclick="event.stopPropagation();openLightbox('${e.image}')" alt="chart"/>`:""}
-      </div>
-      <div class="entry-footer" style="display:flex;justify-content:space-between;align-items:center;padding:0 14px 9px">
-        ${e.reminder?`<span style="font-size:10px;font-family:monospace;color:var(--amber)">⏰ ${new Date(e.reminder).toLocaleDateString("en-US",{month:"short",day:"numeric"})} · ${new Date(e.reminder).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})}</span>`:`<span></span>`}
-        ${e.analysis?`<button class="entry-analysis-btn" onclick="event.stopPropagation();openDetailPage(${e.id})">view entry ✦</button>`:""}
-      </div>
-    </div>`;
-  }).join("");
+// ── Feed ─────────────────────────────────────────────────────────────────
+function getFolderEntriesHTML(tag){
+  const st=folderState[tag]||{search:'',sort:'newest'};
+  let list=entries.filter(e=>e.tag===tag);
+  if(st.search){const s=st.search.toLowerCase();list=list.filter(e=>e.text.toLowerCase().includes(s)||(e.trade?.ticker||'').toLowerCase().includes(s));}
+  list=st.sort==='oldest'?[...list].sort((a,b)=>a.ts-b.ts):[...list].sort((a,b)=>b.ts-a.ts);
+  return list.length?list.map(renderEntryCard).join(''):'<div class="empty-state" style="padding:20px 14px">No entries found.</div>';
 }
-function toggleExpand(id){expandedIds.has(id)?expandedIds.delete(id):expandedIds.add(id);renderFeed();}
+function renderFolderGrid(){
+  const el=document.getElementById('folder-grid');
+  if(!el)return;
+  el.innerHTML=TAGS.map(tag=>{
+    const count=entries.filter(e=>e.tag===tag).length;
+    const color=TAG_ACCENT[tag];
+    const label=TAG_LABELS[tag];
+    const isActive=activeFolderTag===tag;
+    return `<div class="folder-card ${isActive?'folder-card-active':''}" onclick="openFolder('${tag}')" style="--fc:${color}">
+      <div class="folder-icon" style="background:${color};opacity:0.75"></div>
+      <div class="folder-card-name" style="color:${isActive?color:'var(--text)'}">${label}</div>
+      <div class="folder-card-count">${count} entr${count!==1?'ies':'y'}</div>
+    </div>`;
+  }).join('');
+}
+function renderFolderPanel(){
+  const panel=document.getElementById('folder-panel');
+  if(!panel)return;
+  if(!activeFolderTag){panel.style.display='none';return;}
+  const tag=activeFolderTag;
+  const st=folderState[tag]=folderState[tag]||{search:'',sort:'newest'};
+  const color=TAG_ACCENT[tag];
+  const label=TAG_LABELS[tag];
+  panel.style.display='block';
+  panel.innerHTML=`<div class="folder-panel-top">
+    <span class="folder-panel-label" style="color:${color}">${label.toUpperCase()}</span>
+    <input class="folder-search" placeholder="Search..." value="${esc(st.search)}" oninput="folderSearch('${tag}',this.value)"/>
+    <button class="folder-sort-btn" onclick="folderSort('${tag}')">${st.sort==='newest'?'newest ↓':'oldest ↑'}</button>
+  </div>
+  <div class="folder-entries" id="folder-entries-${tag}">${getFolderEntriesHTML(tag)}</div>`;
+}
+function openFolder(tag){
+  activeFolderTag=activeFolderTag===tag?null:tag;
+  if(activeFolderTag&&!folderState[activeFolderTag])folderState[activeFolderTag]={search:'',sort:'newest'};
+  renderFolderGrid();
+  renderFolderPanel();
+}
+function renderFeed(){
+  renderFolderGrid();
+  renderFolderPanel();
+}
+function toggleFolder(tag){openFolder(tag);}
+function folderSearch(tag,val){
+  if(!folderState[tag])folderState[tag]={search:'',sort:'newest'};
+  folderState[tag].search=val;
+  const el=document.getElementById('folder-entries-'+tag);
+  if(el)el.innerHTML=getFolderEntriesHTML(tag);
+}
+function folderSort(tag){
+  if(!folderState[tag])folderState[tag]={search:'',sort:'newest'};
+  folderState[tag].sort=folderState[tag].sort==='newest'?'oldest':'newest';
+  const el=document.getElementById('folder-entries-'+tag);
+  if(el){
+    el.innerHTML=getFolderEntriesHTML(tag);
+    const btn=el.closest('.folder-panel')?.querySelector('.folder-sort-btn');
+    if(btn)btn.textContent=folderState[tag].sort==='newest'?'newest ↓':'oldest ↑';
+  }
+}
+function renderEntryCard(e){
+  const exp=expandedIds.has(e.id);
+  const pnlStr=e.trade?.pnl!=null?(e.trade.pnl>=0?"+":"")+"$"+e.trade.pnl.toFixed(2):"";
+  const pnlColor=e.trade?.pnl!=null?(e.trade.pnl>=0?"var(--green)":"var(--red)"):"";
+  return `<div class="entry" style="border-left:3px solid ${TAG_ACCENT[e.tag]}">
+    <div class="entry-header" onclick="toggleExpand(${e.id})">
+      <span style="font-size:13px">${e.mode==="trading"?"📈":"📓"}</span>
+      ${e.trade?.ticker?`<span style="font-size:var(--font-small);font-family:monospace;color:var(--text4)">${e.trade.ticker} ${e.trade.direction}</span>`:""}
+      ${pnlStr?`<span style="font-size:var(--font-small);font-family:monospace;color:${pnlColor}">${pnlStr}</span>`:""}
+      ${e.reminder?`<span style="font-size:10px;color:var(--amber)">⏰</span>`:""}
+      ${e.grade?`<span style="font-size:10px;font-family:monospace;font-weight:bold;color:${GRADE_COLOR[e.grade]};background:${GRADE_COLOR[e.grade]}22;border:1px solid ${GRADE_COLOR[e.grade]}44;padding:1px 6px;border-radius:10px">${e.grade}</span>`:""}
+      ${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 6px;border-radius:10px;border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"};background:${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 12%,transparent)":"color-mix(in srgb,var(--amber) 12%,transparent)"};color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""}
+      <span class="entry-date">${fmtDate(e.ts)}</span>
+      <button class="entry-delete" onclick="event.stopPropagation();deleteEntry(${e.id})">×</button>
+    </div>
+    <div class="entry-body">
+      <p class="entry-text ${exp?"expanded":""}">${esc(e.text||"(image only)")}</p>
+      ${e.image?`<img class="entry-thumb" src="${e.image}" onclick="event.stopPropagation();openLightbox('${e.image}')" alt="chart"/>`:""}
+    </div>
+    <div class="entry-footer" style="display:flex;justify-content:space-between;align-items:center;padding:0 14px 9px">
+      ${e.reminder?`<span style="font-size:10px;font-family:monospace;color:var(--amber)">⏰ ${new Date(e.reminder).toLocaleDateString("en-US",{month:"short",day:"numeric"})} · ${new Date(e.reminder).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})}</span>`:`<span></span>`}
+      ${e.analysis?`<button class="entry-analysis-btn" onclick="event.stopPropagation();openDetailPage(${e.id})">view entry ✦</button>`:""}
+    </div>
+  </div>`;
+}
 function deleteEntry(id){
   entries=entries.filter(e=>e.id!==id);
   saveData(STORAGE_KEY,entries);
@@ -1891,29 +2026,123 @@ function deleteEntry(id){
   updateEntryCount();renderFeed();}
 function updateEntryCount(){document.getElementById("entry-count").textContent=`${entries.length} entr${entries.length!==1?"ies":"y"}`;}
 
+// ── Forex Factory News ─────────────────────────────────────────────────────
+const FF_CURRENCY_COLOR={USD:'#2980b9',EUR:'#27ae60',GBP:'#8e44ad',JPY:'#e74c3c',AUD:'#f39c12',CAD:'#00b894',CHF:'#fd79a8',NZD:'#6c5ce7'};
+function ffCurrencyColor(c){return FF_CURRENCY_COLOR[c]||'var(--text4)';}
+
+function toggleFFNews(){
+  ffVisible=!ffVisible;
+  localStorage.setItem('ff_visible',ffVisible?'1':'0');
+  document.getElementById('ff-toggle').classList.toggle('active',ffVisible);
+  if(ffVisible)loadFFEvents();
+  else{renderCalendar();if(selectedCalDay)selectCalDay(selectedCalDay);}
+}
+
+const FF_WORKER='https://royal-king-3543.rodiledadon.workers.dev/';
+const FF_ARCHIVE_KEY='ff_news_archive_v1';
+
+function loadFFArchive(){
+  try{return JSON.parse(localStorage.getItem(FF_ARCHIVE_KEY)||'[]');}
+  catch(e){return[];}
+}
+function mergeFFArchive(newEvents){
+  const seen=new Set(ffArchive.map(e=>e.date+'|'+e.title));
+  const toAdd=newEvents.filter(e=>!seen.has(e.date+'|'+e.title));
+  if(toAdd.length){
+    ffArchive=[...ffArchive,...toAdd];
+    localStorage.setItem(FF_ARCHIVE_KEY,JSON.stringify(ffArchive));
+    fsSaveFFArchive();
+  }
+}
+function getFFEventsForDate(dateStr){
+  if(!ffVisible)return[];
+  return ffArchive.filter(e=>e.date===dateStr);
+}
+function ffTimeToET(timeStr,dateStr){
+  // FF times are UTC — parse and convert to America/New_York (handles EST/EDT automatically)
+  if(!timeStr)return'';
+  const m=timeStr.match(/(\d+):(\d+)(am|pm)/i);
+  if(!m)return timeStr;
+  let h=parseInt(m[1]),min=parseInt(m[2]),ap=m[3].toLowerCase();
+  if(ap==='pm'&&h!==12)h+=12;
+  if(ap==='am'&&h===12)h=0;
+  const[mm,dd,yyyy]=dateStr.split('-');
+  const utc=new Date(Date.UTC(parseInt(yyyy),parseInt(mm)-1,parseInt(dd),h,min));
+  return utc.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit',hour12:true});
+}
+
+async function fetchWithProxy(){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),15000);
+  try{
+    const res=await fetch(FF_WORKER,{signal:controller.signal});
+    clearTimeout(timer);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    return await res.text();
+  }catch(e){clearTimeout(timer);throw e;}
+}
+
+async function loadFFEvents(){
+  const btn=document.getElementById('ff-toggle');
+  if(ffEvents&&Date.now()-ffLastFetch<1800000){renderCalendar();if(selectedCalDay)selectCalDay(selectedCalDay);return;}
+  if(btn)btn.textContent='⚡ loading…';
+  try{
+    const text=await fetchWithProxy();
+    const doc=new DOMParser().parseFromString(text,'text/xml');
+    ffEvents=[...doc.querySelectorAll('event')].map(ev=>({
+      title:ev.querySelector('title')?.textContent||'',
+      country:ev.querySelector('country')?.textContent||'',
+      date:ev.querySelector('date')?.textContent||'',
+      time:ev.querySelector('time')?.textContent||'',
+      impact:ev.querySelector('impact')?.textContent||'',
+      forecast:ev.querySelector('forecast')?.textContent||'',
+      previous:ev.querySelector('previous')?.textContent||''
+    })).filter(e=>e.impact==='High'&&e.country==='USD');
+    ffLastFetch=Date.now();
+    mergeFFArchive(ffEvents);
+    if(btn)btn.textContent=`News Feed (${ffEvents.length})`;
+    renderCalendar();
+    if(selectedCalDay)selectCalDay(selectedCalDay);
+  }catch(err){
+    ffEvents=[];
+    if(btn)btn.textContent='News Feed (unavailable)';
+    console.error('FF calendar load failed:',err.message);
+  }
+}
+
+function getFFDotsForDay(d){
+  if(!ffVisible)return '';
+  const dateStr=`${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}-${calYear}`;
+  if(!getFFEventsForDate(dateStr).length)return '';
+  return `<div style="width:5px;height:5px;border-radius:50%;background:var(--red);margin-top:2px;flex-shrink:0"></div>`;
+}
+
 // ── Calendar ───────────────────────────────────────────────────────────────
 function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+const CAL_DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function renderCalendar(){
   document.getElementById("cal-month-label").textContent=`${MONTHS[calMonth]} ${calYear}`;
-  const first=new Date(calYear,calMonth,1).getDay();
   const days=new Date(calYear,calMonth+1,0).getDate();
   const today=new Date();
   let cells="";
-  for(let i=0;i<first;i++)cells+=`<div class="cal-day empty"></div>`;
   for(let d=1;d<=days;d++){
     const isToday=d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
     const dayEntries=entries.filter(e=>{const ed=new Date(e.ts);return ed.getDate()===d&&ed.getMonth()===calMonth&&ed.getFullYear()===calYear;});
     const dayPnl=dayEntries.reduce((s,e)=>s+(e.trade?.pnl||0),0);
     const hasTrades=dayEntries.some(e=>e.trade?.pnl!=null);
     const cls=hasTrades?(dayPnl>=0?"win":"loss"):"";
-    // Colored dots for non-trade journal entries
+    const dow=CAL_DAYS[new Date(calYear,calMonth,d).getDay()];
+    const isWeekend=dow==='Sat'||dow==='Sun';
     const journalEntries=dayEntries.filter(e=>e.mode==="journal"||!e.trade?.ticker);
     const dots=journalEntries.length?`<div style="display:flex;gap:2px;flex-wrap:wrap;margin-top:2px;padding:0 2px">${[...new Set(journalEntries.map(e=>e.tag))].slice(0,4).map(tag=>`<div style="width:5px;height:5px;border-radius:50%;background:${TAG_ACCENT[tag]||'var(--text4)'}"></div>`).join("")}</div>`:"";
-    cells+=`<div class="cal-day ${cls} ${isToday?"today":""}" onclick="selectCalDay(${d})">`+
+    cells+=`<div class="cal-day ${cls} ${isToday?"today":""} ${isWeekend?"weekend":""}" onclick="selectCalDay(${d})">`+
+      `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">`+
       `<div class="cal-day-num">${d}</div>`+
+      `<div style="font-size:0.64rem;font-family:monospace;color:${isWeekend?"var(--text4)":"var(--text3)"}">${dow}</div>`+
+      `</div>`+
       (hasTrades?`<div class="cal-pnl" style="color:${dayPnl>=0?"var(--green)":"var(--red)"}">${dayPnl>=0?"+":""}$${Math.abs(dayPnl).toFixed(0)}</div>`:``)+
-      dots+"</div>";
+      dots+getFFDotsForDay(d)+"</div>";
   }
   document.getElementById("cal-grid").innerHTML=cells;
   if(selectedCalDay)selectCalDay(selectedCalDay);
@@ -1921,12 +2150,28 @@ function renderCalendar(){
 function selectCalDay(d){
   selectedCalDay=d;
   const dayEntries=entries.filter(e=>{const ed=new Date(e.ts);return ed.getDate()===d&&ed.getMonth()===calMonth&&ed.getFullYear()===calYear;});
+  const dateStr=`${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}-${calYear}`;
+  const dayFFEvts=getFFEventsForDate(dateStr);
   const det=document.getElementById("cal-day-detail");
-  if(!dayEntries.length){det.style.display="none";return;}
+  if(!dayEntries.length&&!dayFFEvts.length){det.style.display="none";return;}
   det.style.display="block";
   const dayPnl=dayEntries.reduce((s,e)=>s+(e.trade?.pnl||0),0);
   const hasTrades=dayEntries.some(e=>e.trade?.pnl!=null);
+  const ffSection=dayFFEvts.length?
+    `<div style="margin-bottom:${dayEntries.length?'12px':'0'};${dayEntries.length?'padding-bottom:10px;border-bottom:1px solid var(--border)':''}">
+      <div style="font-size:0.64rem;font-family:monospace;color:var(--red);letter-spacing:.8px;margin-bottom:7px">⚡ HIGH IMPACT NEWS</div>
+      ${dayFFEvts.map(ev=>{
+        const vals=[ev.forecast?'F: '+ev.forecast:'',ev.previous?'P: '+ev.previous:''].filter(Boolean).join(' · ');
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <div style="width:4px;height:4px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
+          <div style="font-size:0.71rem;font-family:monospace;color:var(--text4);width:60px;flex-shrink:0">${ffTimeToET(ev.time,dateStr)} <span style="font-size:0.64rem">ET</span></div>
+          <div style="font-size:0.79rem;color:var(--text2);flex:1">${ev.title}</div>
+          ${vals?`<div style="font-size:0.64rem;font-family:monospace;color:var(--text4);white-space:nowrap">${vals}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`:'';
   det.innerHTML=`<div class="cal-detail-header"><span>${MONTHS[calMonth]} ${d}, ${calYear}</span>${hasTrades?`<span style="font-family:monospace;font-size:13px;color:${dayPnl>=0?"var(--green)":"var(--red)"}">${dayPnl>=0?"+":""}$${dayPnl.toFixed(2)}</span>`:""}</div>`+
+    ffSection+
     dayEntries.map(e=>`<div class="cal-entry-row" onclick="openDetailPage(${e.id})"><div style="width:7px;height:7px;border-radius:50%;background:${TAG_ACCENT[e.tag]};flex-shrink:0;margin-top:2px"></div><div class="cal-entry-text">${esc(e.text||"(image only)")}</div>${e.trade?.accountType&&e.trade.accountType!=="live"?`<span style="font-size:9px;font-family:monospace;padding:1px 5px;border-radius:8px;color:${e.trade.accountType==="funded"?"var(--teal)":"var(--amber)"};border:1px solid ${e.trade.accountType==="funded"?"color-mix(in srgb,var(--teal) 30%,transparent)":"color-mix(in srgb,var(--amber) 30%,transparent)"}">${e.trade.accountType.charAt(0).toUpperCase()+e.trade.accountType.slice(1)}</span>`:""} ${e.trade?.pnl!=null?`<span class="cal-entry-pnl" style="color:${e.trade.pnl>=0?"var(--green)":"var(--red)"}">${e.trade.pnl>=0?"+":""}$${e.trade.pnl.toFixed(2)}</span>`:""}</div>`).join("");
 }
 
@@ -2950,14 +3195,16 @@ function initSettingsPage(){
 // ── App Init (runs after DOM is ready) ────────────────────────────────────
 function initApp(){
   initFirebase();
-  // Build tag buttons
+  // Build tag buttons (journal-only tags; trading tag is auto-set in trade mode)
   const tagBtnsEl=document.getElementById("tag-buttons");
   TAGS.forEach(t=>{
-    const btn=document.createElement("button");
-    btn.className="tag-btn";btn.textContent=TAG_LABELS[t]||t;btn.dataset.tag=t;btn.onclick=()=>selectTag(t);
-    tagBtnsEl.appendChild(btn);
-    const o=document.createElement("option");o.value=t;o.textContent=t;
-    document.getElementById("filter-tag").appendChild(o);
+    if(t!=="trading"){
+      const btn=document.createElement("button");
+      btn.className="tag-btn";btn.textContent=TAG_LABELS[t]||t;btn.dataset.tag=t;btn.onclick=()=>selectTag(t);
+      tagBtnsEl.appendChild(btn);
+    }
+    const ftEl=document.getElementById("filter-tag");
+    if(ftEl){const o=document.createElement("option");o.value=t;o.textContent=t;ftEl.appendChild(o);}
   });
   document.getElementById("note-input").addEventListener("input",updateSaveBtn);
   // Paste image from clipboard anywhere on the compose page
@@ -2967,9 +3214,15 @@ function initApp(){
   });
   selectTag("trading");
   setMode("trading");
-    updateEntryCount();
+  updateEntryCount();
   loadSettings();
   _initChartFocus();
+  // Load FF archive from storage and restore toggle state
+  ffArchive=loadFFArchive();
+  if(ffVisible){
+    document.getElementById('ff-toggle').classList.add('active');
+    loadFFEvents();
+  }
 }
 document.addEventListener("DOMContentLoaded",initApp);
 
