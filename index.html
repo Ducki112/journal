@@ -2476,7 +2476,7 @@ function addGoal(){
 
 function extractGoalKeywords(title,unit){
   // Extract meaningful words: remove stop words, keep nouns/verbs
-  const stop=new Set(["a","an","the","i","to","want","my","in","at","hit","reach","get","by","of","for","be","is","are","and","or","up","down","per"]);
+  const stop=new Set(["a","an","the","i","to","want","my","in","at","hit","reach","get","by","of","for","be","is","are","and","or","up","down","per","have","has","had","with","that","this","from","into","than","will","would","could","should","about","more","just","so","do","did","its","it","was","been","not","out","some","how","many","much","make","made","can","also","then","when","which"]);
   const words=title.toLowerCase().replace(/[^a-z0-9\s]/g,"").split(/\s+/).filter(w=>w.length>2&&!stop.has(w));
   const unitWords=unit.toLowerCase().replace(/[^a-z0-9\s]/g,"").split(/\s+/).filter(w=>w.length>1);
   return [...new Set([...words,...unitWords])];
@@ -2498,27 +2498,28 @@ function isDeltaEntry(text){
 function extractNumberFromText(text,unit){
   const t=(text||"").toLowerCase();
   const u=(unit||"").toLowerCase().trim();
-  // Try unit-specific match first (handles multi-word units like "funded accounts")
   if(u){
     const uPat=u.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\s+/g,"\\s+");
-    // Number before unit: "3 funded accounts"
-    const m=t.match(new RegExp(`([\\d,]+\\.?\\d*)\\s*(?:${uPat})`,"i"));
+    // Number before unit with up to 2 words between: "3 accounts", "3 funded accounts"
+    // Negative lookbehind prevents matching $-prefixed dollar amounts
+    const m=t.match(new RegExp(`(?<!\\$)([\\d,]+\\.?\\d*)\\s*(?:\\w+\\s+){0,2}(?:${uPat})`,"i"));
     if(m)return parseFloat(m[1].replace(/,/g,""));
-    // Number after unit: "funded accounts: 3"
-    const m2=t.match(new RegExp(`(?:${uPat})[^\\d]{0,20}([\\d,]+\\.?\\d*)`,"i"));
+    // Number directly after unit (only colon/dash separator allowed): "accounts: 3"
+    const m2=t.match(new RegExp(`(?:${uPat})\\s*[:\\-]?\\s*([\\d,]+\\.?\\d*)`,"i"));
     if(m2)return parseFloat(m2[1].replace(/,/g,""));
-    // Unit appears in text but no adjacent number found — don't grab an unrelated number
+    // Unit appears in text but no number adjacent — don't grab an unrelated number
     if(t.includes(u))return null;
   }
   // Common unit aliases
   const m=t.match(/([\d,]+\.?\d*)\s*(lb|lbs|pound|pounds|kg|kgs|kilogram|mile|miles|km|rep|reps|page|pages|hour|hours|hr|hrs|min|mins|step|steps|cal|calorie|calories|trade|trades|dollar|dollars|buck|bucks)\b/i);
   if(m)return parseFloat(m[1].replace(/,/g,""));
-  // $ amount
-  const dm=t.match(/\$\s*([\d,]+\.?\d*)/);
-  if(dm)return parseFloat(dm[1].replace(/,/g,""));
-  // Plain number as last resort
+  // Plain number fallback — skip numbers immediately preceded by $ (those are dollar amounts, not counts)
   const nm=t.match(/([\d,]+\.?\d*)/);
-  if(nm)return parseFloat(nm[1].replace(/,/g,""));
+  if(nm){
+    const pos=t.indexOf(nm[1]);
+    if(pos>0&&t[pos-1]==='$')return null;
+    return parseFloat(nm[1].replace(/,/g,""));
+  }
   return null;
 }
 
