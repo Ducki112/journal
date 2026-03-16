@@ -2497,11 +2497,18 @@ function isDeltaEntry(text){
 
 function extractNumberFromText(text,unit){
   const t=(text||"").toLowerCase();
-  const u=(unit||"").toLowerCase().replace(/[^a-z0-9]/g,"");
-  // Try unit-specific match first
+  const u=(unit||"").toLowerCase().trim();
+  // Try unit-specific match first (handles multi-word units like "funded accounts")
   if(u){
-    const m=t.match(new RegExp(`([\\d,]+\\.?\\d*)\\s*${u}`,"i"));
+    const uPat=u.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\s+/g,"\\s+");
+    // Number before unit: "3 funded accounts"
+    const m=t.match(new RegExp(`([\\d,]+\\.?\\d*)\\s*(?:${uPat})`,"i"));
     if(m)return parseFloat(m[1].replace(/,/g,""));
+    // Number after unit: "funded accounts: 3"
+    const m2=t.match(new RegExp(`(?:${uPat})[^\\d]{0,20}([\\d,]+\\.?\\d*)`,"i"));
+    if(m2)return parseFloat(m2[1].replace(/,/g,""));
+    // Unit appears in text but no adjacent number found — don't grab an unrelated number
+    if(t.includes(u))return null;
   }
   // Common unit aliases
   const m=t.match(/([\d,]+\.?\d*)\s*(lb|lbs|pound|pounds|kg|kgs|kilogram|mile|miles|km|rep|reps|page|pages|hour|hours|hr|hrs|min|mins|step|steps|cal|calorie|calories|trade|trades|dollar|dollars|buck|bucks)\b/i);
