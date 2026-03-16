@@ -2560,7 +2560,8 @@ function extractNumberFromText(text,unit){
   const m=t.match(/([\d,]+\.?\d*)\s*(lb|lbs|pound|pounds|kg|kgs|kilogram|mile|miles|km|rep|reps|page|pages|hour|hours|hr|hrs|min|mins|step|steps|cal|calorie|calories|trade|trades|dollar|dollars|buck|bucks)\b/i);
   if(m)return parseFloat(m[1].replace(/,/g,""));
   // Plain number fallback — skip numbers immediately preceded by $ (those are dollar amounts, not counts)
-  const nm=t.match(/([\d,]+\.?\d*)/);
+  // Require leading digit to avoid matching standalone commas (which produce NaN via parseFloat(""))
+  const nm=t.match(/(\d[\d,]*\.?\d*)/);
   if(nm){
     const pos=t.indexOf(nm[1]);
     if(pos>0&&t[pos-1]==='$')return null;
@@ -2571,7 +2572,7 @@ function extractNumberFromText(text,unit){
 
 function scoreEntryRelevance(entryText,goal){
   const t=(entryText||"").toLowerCase();
-  const matched=goal.keywords.filter(k=>t.includes(k));
+  const matched=goal.keywords.filter(k=>new RegExp('\\b'+k+'\\b').test(t));
   // Also boost score if unit appears in text
   const unitMatch=goal.unit&&t.includes(goal.unit.toLowerCase());
   const base=matched.length/Math.max(goal.keywords.length,1);
@@ -2634,7 +2635,7 @@ function scanEntriesForGoal(goal){
     const relevance=getEntryRelevance(entry,goal);
     if(relevance<0.15)continue;
     const num=getValueFromEntry(entry,goal);
-    if(num===null||num===undefined)continue;
+    if(num===null||num===undefined||isNaN(num))continue;
     if(goal.log.find(l=>l.entryId===entry.id))continue;
     // Tag whether this is a delta or absolute value
     const delta=goal.direction==="reduce"&&isDeltaEntry(entry.text);
@@ -2692,7 +2693,7 @@ function checkNewEntryAgainstGoals(entry){
     const relevance=getEntryRelevance(entry,goal);
     if(relevance<0.15)continue;
     const num=getValueFromEntry(entry,goal);
-    if(num===null||num===undefined)continue;
+    if(num===null||num===undefined||isNaN(num))continue;
     const delta=goal.direction==="reduce"&&isDeltaEntry(entry.text);
     goal.log.push({val:num,entryId:entry.id,ts:entry.ts,text:getLogLabel(entry,goal),source:entry.trade?.pnl!=null?"trade":"text",delta});
     recalcGoalCurrent(goal);
