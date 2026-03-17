@@ -2534,6 +2534,15 @@ function isMoneyGoal(goal){
   return /\$|dollar|profit|pnl|p&l|gain|earning|income|money|usd/.test(u+t);
 }
 
+// Detect if a text entry is stating an ABSOLUTE total vs an increment
+// "I now have 4 funded", "have 4 total", "4 fundeds in total" → true
+// "passed another eval", "gained one more" → false
+function isAbsoluteStatement(text){
+  const t=(text||"").toLowerCase();
+  return /\b(now have|i have|have a total|total of|in total|currently have|i now have)\b/.test(t)
+    ||/\d+\s+\w+\s+total\b/.test(t);
+}
+
 // Detect if a text entry is describing a DELTA (change) vs an ABSOLUTE value
 // "down 2 lbs", "lost 3 lbs", "dropped 5 lbs" → delta=true
 // "weigh 178 lbs", "at 178 lbs", "hit 205 lbs" → delta=false
@@ -2652,6 +2661,19 @@ function recalcGoalCurrent(goal){
   if(!goal.log.length){goal.current=0;return;}
 
   if(goal.direction==="accumulate"){
+    if(!isMoneyGoal(goal)){
+      // For non-money count goals: if any entry states an absolute total, use the latest one
+      // e.g. "I now have 4 funded accounts total" → current=4, not 3+4=7
+      const sorted=[...goal.log].sort((a,b)=>a.ts-b.ts);
+      let lastAbsIdx=-1;
+      sorted.forEach((l,i)=>{if(isAbsoluteStatement(l.text))lastAbsIdx=i;});
+      if(lastAbsIdx>=0){
+        const base=sorted[lastAbsIdx].val;
+        const after=sorted.slice(lastAbsIdx+1).filter(l=>!isAbsoluteStatement(l.text));
+        goal.current=base+after.reduce((s,l)=>s+l.val,0);
+        return;
+      }
+    }
     goal.current=goal.log.reduce((s,l)=>s+l.val,0);
 
   } else if(goal.direction==="reach"){
