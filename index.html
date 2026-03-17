@@ -2541,7 +2541,7 @@ function isDeltaEntry(text){
   return /\b(down|lost|lose|dropped|drop|reduced|cut|shed|burned|gained|added|up|increased|added|more|less|off)\b/.test((text||"").toLowerCase());
 }
 
-function extractNumberFromText(text,unit){
+function extractNumberFromText(text,unit,allowFallback=true){
   const t=(text||"").toLowerCase();
   const u=(unit||"").toLowerCase().trim();
   if(u){
@@ -2559,7 +2559,8 @@ function extractNumberFromText(text,unit){
   // Common unit aliases
   const m=t.match(/([\d,]+\.?\d*)\s*(lb|lbs|pound|pounds|kg|kgs|kilogram|mile|miles|km|rep|reps|page|pages|hour|hours|hr|hrs|min|mins|step|steps|cal|calorie|calories|trade|trades|dollar|dollars|buck|bucks)\b/i);
   if(m)return parseFloat(m[1].replace(/,/g,""));
-  // Plain number fallback — skip numbers immediately preceded by $ (those are dollar amounts, not counts)
+  // Plain number fallback — only allowed for journal entries (not trade entries)
+  if(!allowFallback)return null;
   // Require leading digit to avoid matching standalone commas (which produce NaN via parseFloat(""))
   const nm=t.match(/(\d[\d,]*\.?\d*)/);
   if(nm){
@@ -2601,7 +2602,8 @@ function getValueFromEntry(entry,goal){
       const m=t.match(/\$\s*([\d,]+\.?\d*)/)||t.match(/([\d,]+\.?\d*)\s*(?:dollar|buck|profit|gain|made|pnl)/i);
       if(m) textVal=parseFloat(m[1].replace(/,/g,""));
     } else {
-      textVal=extractNumberFromText(entry.text,goal.unit);
+      // Trade entries: don't use plain number fallback (P&L values would pollute count goals)
+      textVal=extractNumberFromText(entry.text,goal.unit,entry.mode!=="trading");
     }
   }
 
@@ -2632,6 +2634,8 @@ function scanEntriesForGoal(goal){
   goal.log=[];
   goal.current=0;
   for(const entry of [...entries].reverse()){
+    // Eval trades are paper money — never count toward real goals
+    if(entry.mode==="trading"&&entry.trade?.accountType==="eval")continue;
     const relevance=getEntryRelevance(entry,goal);
     if(relevance<0.15)continue;
     const num=getValueFromEntry(entry,goal);
