@@ -1387,7 +1387,7 @@ function showPage(p,el){
   if(p==="feed")renderFeed();
   if(p==="calendar")renderCalendar();
   if(p==="patterns")renderPatterns();
-  if(p==="goals")renderGoals();
+  if(p==="goals"){if(goals.length){goals.forEach(g=>scanEntriesForGoal(g));saveData(GOALS_KEY,goals);fsSaveGoals(goals);}renderGoals();}
   if(p==="settings")initSettingsPage();
 }
 
@@ -2572,7 +2572,7 @@ function extractNumberFromText(text,unit){
 
 function scoreEntryRelevance(entryText,goal){
   const t=(entryText||"").toLowerCase();
-  const matched=goal.keywords.filter(k=>new RegExp('\\b'+k+'\\b').test(t));
+  const matched=goal.keywords.filter(k=>new RegExp('\\b'+k,'i').test(t));
   // Also boost score if unit appears in text
   const unitMatch=goal.unit&&t.includes(goal.unit.toLowerCase());
   const base=matched.length/Math.max(goal.keywords.length,1);
